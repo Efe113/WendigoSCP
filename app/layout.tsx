@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { getUserClearance, signOut } from '@/app/actions/scp'
 import ClearanceSwitcher from '@/components/ClearanceSwitcher'
 import MarkdownHelpModal from '@/components/MarkdownHelpModal'
-import { Terminal, Shield, User, Database, Radio, Key, BookOpen, Info, Home } from 'lucide-react'
+import { Terminal, Shield, User, Database, Radio, Key, BookOpen, Info, Home, Lock, Scale } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'SCP Foundation Secure Database',
@@ -56,6 +56,19 @@ export default async function RootLayout({
               <Link href="/guide" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
                 <BookOpen className="w-4 h-4" /> GUIDE
               </Link>
+              <Link href="/ethics" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
+                <Scale className="w-4 h-4" /> ETHICS
+              </Link>
+              {profile?.is_o5_1 && (
+                <Link href="/admin" className="hover:text-white text-terminal-error transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-error">
+                  <Lock className="w-4 h-4" /> O5 PANEL
+                </Link>
+              )}
+              {profile && (profile.is_o5_1 || profile.profession === 'Ethics Committee Liaison') && (
+                <Link href="/ethics/dashboard" className="hover:text-white text-terminal-info transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-info">
+                  <Scale className="w-4 h-4" /> EC PANEL
+                </Link>
+              )}
               <Link href="/about" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
                 <Info className="w-4 h-4" /> ABOUT
               </Link>
