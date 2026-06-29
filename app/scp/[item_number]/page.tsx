@@ -558,9 +558,7 @@ export default async function Page({ params }: PageProps) {
               </h3>
               {hasMainClearance ? (
                 <div className="text-sm leading-relaxed">
-                  <DecayingText text={item.containment_procedures}>
-                    {(glitched) => <ScpMarkdown content={glitched} />}
-                  </DecayingText>
+                  <DecayingText text={item.containment_procedures} />
                 </div>
               ) : (
                 <div className="relative">
@@ -588,9 +586,7 @@ export default async function Page({ params }: PageProps) {
               </h3>
               {hasMainClearance ? (
                 <div className="text-sm leading-relaxed">
-                  <DecayingText text={item.description}>
-                    {(glitched) => <ScpMarkdown content={glitched} />}
-                  </DecayingText>
+                  <DecayingText text={item.description} />
                 </div>
               ) : (
                 <div className="relative">
@@ -633,9 +629,7 @@ export default async function Page({ params }: PageProps) {
                       {/* Addendum Body */}
                       {hasAddendumClearance ? (
                         <div className="text-sm leading-relaxed">
-                          <DecayingText text={addendum.content}>
-                            {(glitched) => <ScpMarkdown content={glitched} />}
-                          </DecayingText>
+                          <DecayingText text={addendum.content} />
                         </div>
                       ) : (
                         <div className="relative py-2">

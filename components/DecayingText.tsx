@@ -1,15 +1,15 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import ScpMarkdown from './ScpMarkdown'
 
 interface DecayingTextProps {
   text: string
-  children?: (glitchedText: string) => React.ReactNode
 }
 
 const GLITCH_CHARS = "█ø†☠§■□▲▼○●✕✓☒☢☣☠⚡"
 
-export default function DecayingText({ text, children }: DecayingTextProps) {
+export default function DecayingText({ text }: DecayingTextProps) {
   const [displayText, setDisplayText] = useState(text)
 
   useEffect(() => {
@@ -22,14 +22,11 @@ export default function DecayingText({ text, children }: DecayingTextProps) {
         const length = textArr.length
         const decayCount = Math.floor(length * 0.04) // Glitch 4% of chars
 
-        const glitchedIndices: number[] = []
-
         for (let i = 0; i < decayCount; i++) {
           const randIdx = Math.floor(Math.random() * length)
           // Skip whitespace and newlines
           if (textArr[randIdx] !== " " && textArr[randIdx] !== "\n") {
             textArr[randIdx] = GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)]
-            glitchedIndices.push(randIdx)
           }
         }
 
@@ -45,9 +42,5 @@ export default function DecayingText({ text, children }: DecayingTextProps) {
     return () => clearInterval(interval)
   }, [text])
 
-  if (children) {
-    return <>{children(displayText)}</>
-  }
-
-  return <span className="transition-all duration-300">{displayText}</span>
+  return <ScpMarkdown content={displayText} />
 }
