@@ -151,3 +151,33 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--primary) !important;
   box-shadow: 0 0 5px var(--primary-glow) !important;
 }
+
+/* Animated Brainwave SVG Waveform */
+@keyframes brainwave {
+  0%, 100% { stroke-dashoffset: 0; filter: drop-shadow(0 0 1px var(--primary-glow)); }
+  50% { stroke-dashoffset: 40; filter: drop-shadow(0 0 4px var(--primary)); }
+}
+.brainwave-line {
+  stroke-dasharray: 20;
+  animation: brainwave 4s linear infinite;
+}
+
+/* Radar Spin */
+@keyframes radarSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.radar-active-spin {
+  transform-origin: center;
+  animation: radarSpin 6s linear infinite;
+}
+
+/* Alarm Red Border Blink */
+@keyframes alarmBlink {
+  0%, 100% { border-color: var(--error); box-shadow: 0 0 2px var(--error-glow); }
+  50% { border-color: #ff8888; box-shadow: 0 0 10px var(--error); }
+}
+.alarm-border-active {
+  animation: alarmBlink 1s infinite ease-in-out;
+}
+
