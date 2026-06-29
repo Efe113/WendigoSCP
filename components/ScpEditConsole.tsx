@@ -4,6 +4,7 @@ import React, { useActionState, useTransition, useState } from 'react'
 import { updateScpItem, addAddendum, deleteAddendum, addResource, deleteResource } from '@/app/actions/scp'
 import TerminalCard from '@/components/TerminalCard'
 import ScpMarkdown from '@/components/ScpMarkdown'
+import { calculateEscalatedClearance } from '@/utils/clearanceCalculator'
 import { ShieldAlert, CheckCircle, Trash2, Plus, ArrowLeft, Database, FileText, Image, Volume2, Eye, Settings } from 'lucide-react'
 import Link from 'next/link'
 
@@ -104,6 +105,9 @@ export default function ScpEditConsole({ item, addenda, resources }: ScpEditCons
     return { ...defaultMeta, ...(item.metadata || {}) }
   })
 
+  const [baseClearance, setBaseClearance] = useState(item.clearance_level_required || 3)
+  const escalatedClearance = calculateEscalatedClearance(baseClearance, metadata)
+
   const updateMetaField = (key: string, value: string) => {
     setMetadata((prev: any) => ({ ...prev, [key]: value }))
   }
@@ -170,12 +174,23 @@ export default function ScpEditConsole({ item, addenda, resources }: ScpEditCons
                   </select>
                 </div>
                 <div>
-                  <label className="block text-terminal-primary/65 mb-1">CLEARANCE LEVEL REQUIRED</label>
-                  <select name="clearance_level_required" defaultValue={item.clearance_level_required} required className="w-full px-2.5 py-1.5 text-xs bg-black text-terminal-primary border border-terminal-border">
+                  <label className="block text-terminal-primary/65 mb-1">BASE CLEARANCE LEVEL</label>
+                  <select
+                    name="clearance_level_required"
+                    value={baseClearance}
+                    onChange={(e) => setBaseClearance(Number(e.target.value))}
+                    required
+                    className="w-full px-2.5 py-1.5 text-xs bg-black text-terminal-primary border border-terminal-border cursor-pointer"
+                  >
                     {[1, 2, 3, 4, 5].map((l) => (
                       <option key={l} value={l}>Level {l}</option>
                     ))}
                   </select>
+                  {escalatedClearance !== baseClearance && (
+                    <div className="mt-1 text-[10px] text-terminal-warn animate-pulse font-bold">
+                      &#9888; ESCALATED LEVEL: LEVEL {escalatedClearance} (RISK DETECTED)
+                    </div>
+                  )}
                 </div>
               </div>
 

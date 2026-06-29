@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Link from 'next/link'
 import { getUserClearance, signOut } from '@/app/actions/scp'
+import { createClient } from '@/utils/supabase/server'
 import ClearanceSwitcher from '@/components/ClearanceSwitcher'
 import MarkdownHelpModal from '@/components/MarkdownHelpModal'
+import AlphaWarheadCountdown from '@/components/AlphaWarheadCountdown'
 import { Terminal, Shield, User, Database, Radio, Key, BookOpen, Info, Home, Lock, Scale } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -18,6 +20,44 @@ export default async function RootLayout({
 }) {
   const { user, profile, realLevel, simulatedLevel, currentLevel } = await getUserClearance()
 
+  // Fetch configs for layouts
+  const supabase = await createClient()
+  const { data: configs } = await supabase
+    .from('system_config')
+    .select('key, value')
+    .in('key', ['red_alert', 'blackout_mode', 'alpha_warhead_active', 'alpha_warhead_time'])
+
+  const configMap: Record<string, string> = {
+    red_alert: 'false',
+    blackout_mode: 'false',
+    alpha_warhead_active: 'false',
+    alpha_warhead_time: '90',
+  }
+
+  configs?.forEach((c) => {
+    configMap[c.key] = c.value
+  })
+
+  const isRedAlert = configMap.red_alert === 'true'
+  const isBlackout = configMap.blackout_mode === 'true'
+  const isWarheadActive = configMap.alpha_warhead_active === 'true'
+  const warheadTime = parseInt(configMap.alpha_warhead_time, 10) || 90
+
+  // Build body className list
+  const bodyClasses = [
+    'min-h-screen',
+    'flex',
+    'flex-col',
+    'font-mono',
+    'text-terminal-primary',
+    'relative',
+    'antialiased',
+    'selection:bg-terminal-primary',
+    'selection:text-black',
+    isRedAlert ? 'alert-active' : '',
+    isBlackout ? 'blackout-active' : '',
+  ].filter(Boolean).join(' ')
+
   const handleSignOut = async () => {
     'use server'
     await signOut()
@@ -25,7 +65,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="h-full bg-black">
-      <body className="min-h-screen flex flex-col font-mono text-terminal-primary relative antialiased selection:bg-terminal-primary selection:text-black">
+      <body className={bodyClasses}>
+        {/* Alpha Warhead Countdown alert */}
+        {isWarheadActive && <AlphaWarheadCountdown initialSeconds={warheadTime} />}
+
         {/* Decorative Grid Line Lines overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#112211_1px,transparent_1px),linear-gradient(to_bottom,#112211_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none z-0"></div>
 
@@ -43,7 +86,7 @@ export default async function RootLayout({
               </div>
             </div>
 
-            <nav className="flex items-center gap-4 text-xs sm:text-sm flex-wrap">
+            <nav className="flex items-center gap-4 text-sm flex-wrap">
               <Link href="/" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
                 <Home className="w-4 h-4" /> PORTAL
               </Link>

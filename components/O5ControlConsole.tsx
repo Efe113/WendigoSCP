@@ -3,7 +3,7 @@
 import React, { useState, useActionState, useTransition } from 'react'
 import { updateUserStatus, updateSystemConfig, createCustomRole } from '@/app/actions/scp'
 import TerminalCard from '@/components/TerminalCard'
-import { Shield, ShieldAlert, CheckCircle, Radio, Settings, Users, FilePlus, BarChart2 } from 'lucide-react'
+import { Shield, ShieldAlert, CheckCircle, Radio, Settings, Users, FilePlus, BarChart2, Volume2, ShieldCheck, Zap, AlertTriangle, Eye, RefreshCw, RefreshCw as RotateCcw } from 'lucide-react'
 
 interface Profile {
   id: string
@@ -18,7 +18,7 @@ interface Profile {
 interface O5ControlConsoleProps {
   pendingProfiles: Profile[]
   allProfiles: Profile[]
-  config: { maintenance_mode: string; threat_level: string }
+  config: Record<string, string>
 }
 
 const initialRoleState = { success: false, error: '' }
@@ -88,7 +88,7 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
       <div className="flex border-b border-terminal-border flex-wrap">
         {[
           { id: 'approvals', label: 'REGISTRATION QUEUE', icon: Users, badge: pendingProfiles.length },
-          { id: 'system', label: 'SYSTEM CONFIG', icon: Settings },
+          { id: 'system', label: 'MAINFRAME CONFIG', icon: Settings },
           { id: 'roles', label: 'CUSTOM ROLES BUILDER', icon: FilePlus },
           { id: 'stats', label: 'DATABASE METRICS', icon: BarChart2 },
         ].map((t) => {
@@ -123,10 +123,10 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
           <div className="space-y-4">
             <TerminalCard title="PENDING AGENT REGISTRATIONS" statusText="QUEUE">
               {pendingProfiles.length === 0 ? (
-                <p className="text-center py-12 text-terminal-primary/50">NO REGISTRATION REQUESTS DETECTED IN THE QUEUE.</p>
+                <p className="text-center py-12 text-terminal-primary/50 text-xs">NO REGISTRATION REQUESTS DETECTED IN THE QUEUE.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-[11px]">
+                  <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="border-b border-terminal-border/40 pb-2 text-terminal-primary/60">
                         <th className="py-2">CODENAME</th>
@@ -169,49 +169,373 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
           </div>
         )}
 
-        {/* Tab 2: System Settings */}
+        {/* Tab 2: System Settings (20 Mainframe Commands Grid) */}
         {activeTab === 'system' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TerminalCard title="Bakım Modu (Maintenance Toggle)" status={config.maintenance_mode === 'true' ? 'warn' : 'default'} statusText="MAINTENANCE">
-              <div className="space-y-4 py-2">
-                <p className="text-terminal-primary/75">
-                  ACTIVATING MAINTENANCE MODE BLOCKS ALL NON-O5 AGENTS AND GUESTS FROM SITE ACCESS, SHOWING A SYSTEM LOCKDOWN SCREEN.
-                </p>
-                <div className="flex justify-between items-center border border-terminal-border/40 p-3 bg-black">
-                  <span className="font-bold text-white">STATUS: {config.maintenance_mode === 'true' ? 'ACTIVE (SITE OFFLINE)' : 'INACTIVE (SITE ONLINE)'}</span>
-                  <button
-                    onClick={() => handleConfigChange('maintenance_mode', config.maintenance_mode === 'true' ? 'false' : 'true')}
-                    disabled={isPending}
-                    className={`px-4 py-2 border font-bold uppercase transition-colors cursor-pointer ${
-                      config.maintenance_mode === 'true'
-                        ? 'border-terminal-primary hover:bg-terminal-primary hover:text-black'
-                        : 'border-terminal-error hover:bg-terminal-error hover:text-black text-terminal-error'
-                    }`}
-                  >
-                    {config.maintenance_mode === 'true' ? 'DISABLE LOCKDOWN' : 'INITIATE LOCKDOWN'}
-                  </button>
+          <div className="space-y-6">
+            {/* Top Critical Controls Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <TerminalCard title="Maintenance Override" status={config.maintenance_mode === 'true' ? 'warn' : 'default'} statusText="SYS_LOCK">
+                <div className="space-y-3 py-1">
+                  <p className="text-terminal-primary/70 text-[10px]">
+                    Blocks non-O5 credentials from accessing the terminal mainframe.
+                  </p>
+                  <div className="flex justify-between items-center bg-black/60 p-2 border border-terminal-border/30">
+                    <span className="font-bold text-[10px]">{config.maintenance_mode === 'true' ? 'ON' : 'OFF'}</span>
+                    <button
+                      onClick={() => handleConfigChange('maintenance_mode', config.maintenance_mode === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2.5 py-1 text-[10px] border border-terminal-primary hover:bg-terminal-primary hover:text-black font-bold cursor-pointer"
+                    >
+                      TOGGLE LOCKDOWN
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </TerminalCard>
+              </TerminalCard>
 
-            <TerminalCard title="Tehdit Durumu (Threat Level)" status="default" statusText="THREAT">
-              <div className="space-y-4 py-2">
-                <p className="text-terminal-primary/75">
-                  UPDATE THE GLOBAL RISK CODEX OF SITE-19. THIS SETTING IS VISIBLE ON THE PORTAL DASHBOARD FOR ALL AGENTS.
-                </p>
-                <div className="flex gap-4 items-center justify-between border border-terminal-border/40 p-3 bg-black">
-                  <span className="font-bold text-white uppercase">ACTIVE RISK: {config.threat_level}</span>
+              <TerminalCard title="Threat Condition Level" status="default" statusText="THREAT">
+                <div className="space-y-3 py-1">
+                  <p className="text-terminal-primary/70 text-[10px]">
+                    Defines active threat level displayed across the Portal homepage.
+                  </p>
                   <select
-                    value={config.threat_level}
-                    disabled={isPending}
+                    value={config.threat_level || 'LEVEL_GREEN'}
                     onChange={(e) => handleConfigChange('threat_level', e.target.value)}
-                    className="px-3 py-1.5 border border-terminal-border bg-black text-terminal-primary text-xs cursor-pointer focus:outline-none"
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-xs px-2.5 py-1"
                   >
                     <option value="LEVEL_GREEN">LEVEL_GREEN (SAFE)</option>
                     <option value="LEVEL_YELLOW">LEVEL_YELLOW (EUCLID)</option>
                     <option value="LEVEL_RED">LEVEL_RED (KETER)</option>
                     <option value="LEVEL_BLACK">LEVEL_BLACK (APOLLYON)</option>
                   </select>
+                </div>
+              </TerminalCard>
+
+              <TerminalCard title="Warhead Countdown Timer" status={config.alpha_warhead_active === 'true' ? 'error' : 'default'} statusText="WARHEAD_DET">
+                <div className="space-y-3 py-1">
+                  <p className="text-terminal-primary/70 text-[10px]">
+                    Set detonation duration in seconds for self-destruct protocol.
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={config.alpha_warhead_time || '90'}
+                      onChange={(e) => handleConfigChange('alpha_warhead_time', e.target.value)}
+                      disabled={isPending}
+                      className="w-20 bg-black text-terminal-primary border border-terminal-border/40 text-xs px-2.5 py-1"
+                    />
+                    <span className="text-[10px] text-terminal-primary/50 self-center">SECONDS</span>
+                  </div>
+                </div>
+              </TerminalCard>
+            </div>
+
+            {/* Overrides Mainframe 20 Commands Dashboard */}
+            <TerminalCard title="MAINFRAME CONFIGURATION OVERRIDES HUB (20 CONFIGURATION PANELS)" status="info" statusText="MAINFRAME_HUB">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 py-2">
+                {/* 1. Red Alert */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5 text-red-500" /> 1. RED ALERT CLAXON</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.red_alert === 'true' ? 'ACTIVE' : 'MUTED'}</span>
+                    <button
+                      onClick={() => handleConfigChange('red_alert', config.red_alert === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Blackout Mode */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-yellow-500" /> 2. POWER BLACKOUT</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.blackout_mode === 'true' ? 'BLACKOUT' : 'FULL POWER'}</span>
+                    <button
+                      onClick={() => handleConfigChange('blackout_mode', config.blackout_mode === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Alpha Warhead protocol */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5 text-red-500" /> 3. ALPHA WARHEAD PROTOCOL</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.alpha_warhead_active === 'true' ? 'ARMED' : 'SAFE'}</span>
+                    <button
+                      onClick={() => handleConfigChange('alpha_warhead_active', config.alpha_warhead_active === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4. MTF Deployment */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Users className="w-3.5 h-3.5 text-blue-400" /> 4. MTF DISPATCH</span>
+                  <select
+                    value={config.mtf_dispatched || 'None'}
+                    onChange={(e) => handleConfigChange('mtf_dispatched', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    <option value="None">No MTF Dispatched</option>
+                    <option value="Alpha-1">MTF Alpha-1 (Red Right Hand)</option>
+                    <option value="Epsilon-11">MTF Epsilon-11 (Nine-Tailed Fox)</option>
+                    <option value="Omega-7">MTF Omega-7 (Pandora's Box)</option>
+                    <option value="Tau-5">MTF Tau-5 (Samsara)</option>
+                  </select>
+                </div>
+
+                {/* 5. Ethics Auditing */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-green-500" /> 5. ETHICS AUDITS</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.ethics_audits === 'true' ? 'ENABLED' : 'BYPASSED'}</span>
+                    <button
+                      onClick={() => handleConfigChange('ethics_audits', config.ethics_audits === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 6. Automated Security Alarm */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Volume2 className="w-3.5 h-3.5 text-orange-400" /> 6. SECURITY SIREN</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>ALARM: {config.security_alarm === 'true' ? 'ON' : 'OFF'}</span>
+                    <button
+                      onClick={() => handleConfigChange('security_alarm', config.security_alarm === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 7. Acoustic Warning Broadcaster */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Volume2 className="w-3.5 h-3.5 text-purple-400" /> 7. ACOUSTIC BROADCAST</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.sound_warnings === 'true' ? 'BROADCASTING' : 'MUTED'}</span>
+                    <button
+                      onClick={() => handleConfigChange('sound_warnings', config.sound_warnings === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 8. Exposure Warnings */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5 text-yellow-500" /> 8. EXPOSURE WARN</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.exposure_warning === 'true' ? 'WARNING' : 'NORMAL'}</span>
+                    <button
+                      onClick={() => handleConfigChange('exposure_warning', config.exposure_warning === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 9. Amnestics A */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-1.5">
+                  <span className="text-white font-bold block text-[10px] uppercase">9. AMNESTICS CLASS-A</span>
+                  <div className="flex justify-between items-center">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={config.amnestic_stock_a || '100'}
+                      onChange={(e) => handleConfigChange('amnestic_stock_a', e.target.value)}
+                      disabled={isPending}
+                      className="w-full mr-2 cursor-pointer h-1.5 bg-neutral-800"
+                    />
+                    <span className="text-[10px] font-bold">{config.amnestic_stock_a || '100'}%</span>
+                  </div>
+                </div>
+
+                {/* 10. Amnestics B */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-1.5">
+                  <span className="text-white font-bold block text-[10px] uppercase">10. AMNESTICS CLASS-B</span>
+                  <div className="flex justify-between items-center">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={config.amnestic_stock_b || '100'}
+                      onChange={(e) => handleConfigChange('amnestic_stock_b', e.target.value)}
+                      disabled={isPending}
+                      className="w-full mr-2 cursor-pointer h-1.5 bg-neutral-800"
+                    />
+                    <span className="text-[10px] font-bold">{config.amnestic_stock_b || '100'}%</span>
+                  </div>
+                </div>
+
+                {/* 11. Amnestics C */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-1.5">
+                  <span className="text-white font-bold block text-[10px] uppercase">11. AMNESTICS CLASS-C</span>
+                  <div className="flex justify-between items-center">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={config.amnestic_stock_c || '100'}
+                      onChange={(e) => handleConfigChange('amnestic_stock_c', e.target.value)}
+                      disabled={isPending}
+                      className="w-full mr-2 cursor-pointer h-1.5 bg-neutral-800"
+                    />
+                    <span className="text-[10px] font-bold">{config.amnestic_stock_c || '100'}%</span>
+                  </div>
+                </div>
+
+                {/* 12. Radiation Limit */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">12. RAD THRESHOLD</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={config.radiation_threshold || '0.05'}
+                      onChange={(e) => handleConfigChange('radiation_threshold', e.target.value)}
+                      disabled={isPending}
+                      className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                    />
+                    <span className="text-[9px] text-terminal-primary/50 self-center">mSv</span>
+                  </div>
+                </div>
+
+                {/* 13. Intruder count */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">13. INTRUDER LIMIT</span>
+                  <input
+                    type="number"
+                    value={config.intrusion_attempts || '0'}
+                    onChange={(e) => handleConfigChange('intrusion_attempts', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  />
+                </div>
+
+                {/* 14. Cognitohazard filter strength */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-1.5">
+                  <span className="text-white font-bold block text-[10px] uppercase">14. COG FILTER</span>
+                  <div className="flex justify-between items-center">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={config.cog_filter_strength || '100'}
+                      onChange={(e) => handleConfigChange('cog_filter_strength', e.target.value)}
+                      disabled={isPending}
+                      className="w-full mr-2 cursor-pointer h-1.5 bg-neutral-800"
+                    />
+                    <span className="text-[10px] font-bold">{config.cog_filter_strength || '100'}%</span>
+                  </div>
+                </div>
+
+                {/* 15. Psych eval interval */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">15. PSYCH INTERVAL</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={config.eval_interval_days || '30'}
+                      onChange={(e) => handleConfigChange('eval_interval_days', e.target.value)}
+                      disabled={isPending}
+                      className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                    />
+                    <span className="text-[9px] text-terminal-primary/50 self-center">DAYS</span>
+                  </div>
+                </div>
+
+                {/* 16. Global Redaction Level */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-cyan-400" /> 16. REDACTION MODE</span>
+                  <select
+                    value={config.redaction_level || 'hover'}
+                    onChange={(e) => handleConfigChange('redaction_level', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    <option value="hover">Hover to decrypt</option>
+                    <option value="absolute">Permanent blacked-out</option>
+                  </select>
+                </div>
+
+                {/* 17. CRT Scanline density */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">17. SCANLINE TYPE</span>
+                  <select
+                    value={config.scanline_density || 'medium'}
+                    onChange={(e) => handleConfigChange('scanline_density', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    <option value="low">Low density</option>
+                    <option value="medium">Medium density</option>
+                    <option value="high">High density</option>
+                  </select>
+                </div>
+
+                {/* 18. Encryption Key rotation */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5 text-blue-500 animate-spin" style={{ animationDuration: '6s' }} /> 18. KEY ROTATION</span>
+                  <input
+                    type="date"
+                    value={config.key_rotation_date || '2026-06-01'}
+                    onChange={(e) => handleConfigChange('key_rotation_date', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  />
+                </div>
+
+                {/* 19. Site Lockdown Sectors */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">19. SECTOR LOCKDOWNS</span>
+                  <input
+                    type="text"
+                    value={config.site_lockdown_sectors || 'None'}
+                    onChange={(e) => handleConfigChange('site_lockdown_sectors', e.target.value)}
+                    disabled={isPending}
+                    placeholder="e.g. Sector-4"
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  />
+                </div>
+
+                {/* 20. Mainframe Cookie Amnestic Reset */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">20. AMNESTICS DISPENSE</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('Initiate Class-A memory wipe? This will clear local authorization cookies and log you out.')) {
+                        document.cookie.split(";").forEach(function(c) { 
+                          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        window.location.href = '/login';
+                      }
+                    }}
+                    className="w-full py-1.5 bg-red-950/20 hover:bg-terminal-error hover:text-black border border-terminal-error/45 text-[10px] font-bold uppercase transition-colors"
+                  >
+                    WIPE MEMORY
+                  </button>
                 </div>
               </div>
             </TerminalCard>
@@ -348,12 +672,12 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Professions list */}
             <TerminalCard title="COUNT PER FIXED PROFESSION" statusText="PROFESSIONS">
-              <div className="space-y-3 py-1">
+              <div className="space-y-3 py-1 text-xs">
                 {Object.entries(professionCounts).map(([prof, count]) => {
                   const pct = totalCount > 0 ? (count / totalCount) * 100 : 0
                   return (
                     <div key={prof} className="space-y-1">
-                      <div className="flex justify-between text-[10px] font-bold text-white uppercase">
+                      <div className="flex justify-between font-bold text-white uppercase text-[10px]">
                         <span>{prof}</span>
                         <span>{count} PERSONNEL ({Math.round(pct)}%)</span>
                       </div>
@@ -368,12 +692,12 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
 
             {/* Ranks list */}
             <TerminalCard title="COUNT PER FIXED RANK" statusText="RANKS">
-              <div className="space-y-3 py-1">
+              <div className="space-y-3 py-1 text-xs">
                 {Object.entries(rankCounts).map(([rank, count]) => {
                   const pct = totalCount > 0 ? (count / totalCount) * 100 : 0
                   return (
                     <div key={rank} className="space-y-1">
-                      <div className="flex justify-between text-[10px] font-bold text-white uppercase">
+                      <div className="flex justify-between font-bold text-white uppercase text-[10px]">
                         <span>{rank}</span>
                         <span>{count} PERSONNEL ({Math.round(pct)}%)</span>
                       </div>

@@ -55,17 +55,33 @@ export default async function AdminPage() {
     .from('system_config')
     .select('*')
 
-  const configMap = {
+  const configMap: Record<string, string> = {
     maintenance_mode: 'false',
     threat_level: 'LEVEL_GREEN',
+    red_alert: 'false',
+    blackout_mode: 'false',
+    alpha_warhead_active: 'false',
+    alpha_warhead_time: '90',
+    mtf_dispatched: 'None',
+    redaction_level: 'hover',
+    sound_warnings: 'false',
+    site_lockdown_sectors: 'None',
+    amnestic_stock_a: '100',
+    amnestic_stock_b: '100',
+    amnestic_stock_c: '100',
+    security_alarm: 'false',
+    radiation_threshold: '0.05',
+    intrusion_attempts: '0',
+    scanline_density: 'medium',
+    key_rotation_date: '2026-06-01',
+    ethics_audits: 'true',
+    exposure_warning: 'false',
+    eval_interval_days: '30',
+    cog_filter_strength: '100',
   }
 
   systemConfigData?.forEach((cfg) => {
-    if (cfg.key === 'maintenance_mode') {
-      configMap.maintenance_mode = cfg.value
-    } else if (cfg.key === 'threat_level') {
-      configMap.threat_level = cfg.value
-    }
+    configMap[cfg.key] = cfg.value
   })
 
   return (

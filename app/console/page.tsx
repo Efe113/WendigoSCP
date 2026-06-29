@@ -2,6 +2,7 @@
 
 import React, { useActionState, useEffect, useRef, useState } from 'react'
 import { createScpItem } from '@/app/actions/scp'
+import { calculateEscalatedClearance } from '@/utils/clearanceCalculator'
 import TerminalCard from '@/components/TerminalCard'
 import ScpMarkdown from '@/components/ScpMarkdown'
 import { ShieldAlert, CheckCircle, Database, Eye, Settings, Heart, Lock, AlertTriangle } from 'lucide-react'
@@ -83,6 +84,9 @@ export default function ConsolePage() {
     amnestic_protocol: 'Class-A',
     tactical_clearance: 'Standard',
   })
+
+  const [baseClearance, setBaseClearance] = useState(3)
+  const escalatedClearance = calculateEscalatedClearance(baseClearance, metadata)
 
   // Temporary inputs for builders
   const [newAddendum, setNewAddendum] = useState<LocalAddendum>({
@@ -179,12 +183,23 @@ export default function ConsolePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-terminal-primary/65 mb-1">CLEARANCE LEVEL REQUIRED</label>
-                  <select name="clearance_level_required" required className="w-full px-2.5 py-1.5 text-xs bg-black text-terminal-primary border border-terminal-border">
+                  <label className="block text-terminal-primary/65 mb-1">BASE CLEARANCE LEVEL</label>
+                  <select
+                    name="clearance_level_required"
+                    value={baseClearance}
+                    onChange={(e) => setBaseClearance(Number(e.target.value))}
+                    required
+                    className="w-full px-2.5 py-1.5 text-xs bg-black text-terminal-primary border border-terminal-border cursor-pointer"
+                  >
                     {[1, 2, 3, 4, 5].map((l) => (
                       <option key={l} value={l}>Level {l}</option>
                     ))}
                   </select>
+                  {escalatedClearance !== baseClearance && (
+                    <div className="mt-1 text-[10px] text-terminal-warn animate-pulse font-bold">
+                      &#9888; ESCALATED LEVEL: LEVEL {escalatedClearance} (RISK DETECTED)
+                    </div>
+                  )}
                 </div>
               </div>
 
