@@ -334,10 +334,6 @@ export async function updateRealClearance(level: number) {
 
 export async function getUserClearance() {
   const supabase = await createClient()
-  const cookieStore = await cookies()
-  
-  const override = cookieStore.get('scp_clearance_override')?.value
-  const simulatedLevel = override ? parseInt(override, 10) : null
 
   const { data: { user } } = await supabase.auth.getUser()
   let profile = null
@@ -360,8 +356,8 @@ export async function getUserClearance() {
     user,
     profile,
     realLevel,
-    simulatedLevel,
-    currentLevel: simulatedLevel !== null ? simulatedLevel : realLevel,
+    simulatedLevel: null,
+    currentLevel: realLevel,
   }
 }
 
@@ -663,6 +659,98 @@ export async function resolveComplaint(prevState: any, formData: FormData) {
           return { error: `Complaint resolved, but user profile update failed: ${profileError.message}` }
         }
       }
+    }
+
+    revalidatePath('/')
+    revalidatePath('/ethics/dashboard')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred.' }
+  }
+}
+
+export async function demoteToDClass(profileId: string) {
+  try {
+    const supabase = await createClient()
+    const { profile } = await getUserClearance()
+
+    if (!profile?.is_o5_1 && profile?.profession !== 'Ethics Committee Liaison') {
+      return { error: 'SECURITY VIOLATION: ETHICS LIAISON OR O5 CREDENTIALS REQUIRED.' }
+    }
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({
+        clearance_level: 1,
+        profession: 'D-Class (Demoted)',
+        rank: 'Class D Test Subject',
+        status: 'approved'
+      })
+      .eq('id', profileId)
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    revalidatePath('/')
+    revalidatePath('/ethics/dashboard')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred.' }
+  }
+}
+
+export async function sendECCensure(profileId: string, message: string) {
+  try {
+    const supabase = await createClient()
+    const { profile } = await getUserClearance()
+
+    if (!profile?.is_o5_1 && profile?.profession !== 'Ethics Committee Liaison') {
+      return { error: 'SECURITY VIOLATION: ETHICS LIAISON OR O5 CREDENTIALS REQUIRED.' }
+    }
+
+    // Retrieve target username
+    const { data: targetUser } = await supabase
+      .from('user_profiles')
+      .select('username')
+      .eq('id', profileId)
+      .single()
+
+    const targetUsername = targetUser?.username || 'Unknown Agent'
+
+    // Fetch existing censures
+    const { data: existing } = await supabase
+      .from('system_config')
+      .select('value')
+      .eq('key', 'ethics_censures')
+      .maybeSingle()
+
+    let censures = []
+    if (existing?.value) {
+      try {
+        censures = JSON.parse(existing.value)
+      } catch (e) {
+        censures = []
+      }
+    }
+
+    const newCensure = {
+      id: crypto.randomUUID(),
+      profile_id: profileId,
+      username: targetUsername,
+      message,
+      timestamp: new Date().toISOString()
+    }
+
+    censures.push(newCensure)
+
+    // Save censures array back
+    const { error } = await supabase
+      .from('system_config')
+      .upsert({ key: 'ethics_censures', value: JSON.stringify(censures) })
+
+    if (error) {
+      return { error: error.message }
     }
 
     revalidatePath('/')

@@ -41,7 +41,7 @@ export default async function EthicsDashboardPage() {
 
   const supabase = await createClient()
 
-  // Fetch complaints joined with target profile metadata
+  // 1. Fetch complaints joined with target profile metadata
   const { data: complaints, error } = await supabase
     .from('ethics_complaints')
     .select(`
@@ -64,9 +64,38 @@ export default async function EthicsDashboardPage() {
     )
   }
 
+  // 2. Fetch all profiles for disciplinary actions
+  const { data: allProfiles } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .order('username', { ascending: true })
+
+  // 3. Fetch system config configs
+  const { data: systemConfigData } = await supabase
+    .from('system_config')
+    .select('*')
+
+  const configMap: Record<string, string> = {
+    ethics_compliance_score: '88',
+    dclass_protocol: 'humane',
+    whistleblower_protection: 'true',
+    sentient_testing_block: 'true',
+    termination_moratorium: 'false',
+    auto_suspension_complaints: 'true',
+    amnestic_ec_override: 'false',
+    ethics_violation_condition: 'LEVEL_GREEN',
+    ethics_censures: '[]',
+  }
+
+  systemConfigData?.forEach((cfg) => {
+    configMap[cfg.key] = cfg.value
+  })
+
   return (
     <EthicsDashboardConsole
       complaints={complaints as any || []}
+      allProfiles={allProfiles || []}
+      config={configMap}
     />
   )
 }

@@ -3,7 +3,6 @@ import './globals.css'
 import Link from 'next/link'
 import { getUserClearance, signOut } from '@/app/actions/scp'
 import { createClient } from '@/utils/supabase/server'
-import ClearanceSwitcher from '@/components/ClearanceSwitcher'
 import MarkdownHelpModal from '@/components/MarkdownHelpModal'
 import AlphaWarheadCountdown from '@/components/AlphaWarheadCountdown'
 import { Terminal, Shield, User, Database, Radio, Key, BookOpen, Info, Home, Lock, Scale } from 'lucide-react'
@@ -155,12 +154,9 @@ export default async function RootLayout({
               )}
             </div>
             
-            <ClearanceSwitcher
-              currentLevel={currentLevel}
-              simulatedLevel={simulatedLevel}
-              realLevel={realLevel}
-              isLoggedIn={!!user}
-            />
+            <div className="text-[10px] uppercase font-bold text-white border border-terminal-border/60 px-2.5 py-0.5 bg-black/40">
+              CLEARANCE LEVEL: LEVEL {currentLevel}
+            </div>
           </div>
         </div>
 
