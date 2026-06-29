@@ -24,20 +24,48 @@ export default function MarkdownHelpModal() {
       code: 'Personnel encountered ||highly hazardous details|| in the room.',
     },
     {
+      title: 'Object Class Badges',
+      code: 'Entity belongs to Class: [safe] / [euclid] / [keter] / [apollyon]',
+    },
+    {
+      title: 'Threat Indicator Lights',
+      code: 'Visual status signals: [threat-green] SAFE, [threat-yellow] WARNING, [threat-red] BREACH WARNING',
+    },
+    {
+      title: 'Risk & Disruption Scales',
+      code: 'Disruption Class: [disrupt-keneq] / [disrupt-amida] \nRisk level: [risk-caution] / [risk-critical]',
+    },
+    {
+      title: 'Mobile Task Force Badges',
+      code: 'Containment deployed MTF support: [mtf-alpha1] or [mtf-epsilon11]',
+    },
+    {
+      title: 'Glitch, Rainbow & Matrix Text',
+      code: 'Alert: [glitch]CONTAINMENT EXPIRED[/glitch]\nCognito state: [rainbow]EUPHORIA INITIATE[/rainbow]\nTerminal sync: [matrix]db_connection = true[/matrix]',
+    },
+    {
+      title: 'CRT Typewriter & Blur Decrypt',
+      code: 'Loading files: [typewriter]COMMENCING DECRYPTION...[/typewriter]\nClassified notes: [blur]This paragraph remains hidden until hovered.[/blur]',
+    },
+    {
+      title: 'ECG, Radar & CCTV Scan Widgets',
+      code: 'Sensors: [ecg] | [radar] | [spectrogram] | [cctv]',
+    },
+    {
+      title: 'Slanted Administrative Stamps',
+      code: 'Case outcome: [stamp-approved] | [stamp-denied] | [stamp-terminated]',
+    },
+    {
       title: 'Protocol Warning Box',
-      code: '[warn] WARNING: ALL SAMPLES MUST BE INCINERATED IMMEDATELY. [/warn]',
+      code: '[warn] WARNING: ALL SAMPLES MUST BE INCINERATED IMMEDIATELY. [/warn]',
     },
     {
       title: 'Access Restricted Block',
       code: '[denied] COGNITOHAZARD DETECTED - DATA LOCKDOWN ACTIVE. [/denied]',
     },
     {
-      title: 'O5 Command Note',
-      code: '[note] O5-9: Standard containment protocols for SCP-173 are suspended. [/note]',
-    },
-    {
-      title: 'Level 5 Restricted Area',
-      code: '[level5] O5 Eyes Only. Incident 173-A details. [/level5]',
+      title: 'O5 Command Note & Level 5 block',
+      code: '[note] O5-9: Standard containment is suspended. [/note] \n[level5] O5 Eyes Only. [/level5]',
     },
     {
       title: 'Interview Transcription log',
@@ -46,10 +74,6 @@ export default function MarkdownHelpModal() {
     {
       title: 'Satır İçi Kod & Ayraç (Code & Divider)',
       code: 'System parameters: `db_sync_active = true` \n---\nAdditional notes follow.',
-    },
-    {
-      title: 'Kalın & Yatık (Bold & Italic)',
-      code: 'This is **highly critical** and *extremely unpredictable* data.',
     },
   ]
 

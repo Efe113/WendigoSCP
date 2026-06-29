@@ -5,8 +5,10 @@ import TerminalImageFrame from '@/components/TerminalImageFrame'
 import TerminalAudioPlayer from '@/components/TerminalAudioPlayer'
 import DeleteScpButton from '@/components/DeleteScpButton'
 import Link from 'next/link'
-import { ArrowLeft, ShieldCheck, ShieldAlert, Edit, HelpCircle } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, ShieldAlert, Edit, HelpCircle, HardDrive, Shield, Calendar, Database } from 'lucide-react'
 import { notFound } from 'next/navigation'
+
+export const revalidate = 0 // Disable page caching for real-time metadata syncing
 
 interface PageProps {
   params: Promise<{
@@ -64,13 +66,15 @@ export default async function Page({ params }: PageProps) {
     }
   }
 
+  const meta = item.metadata || {}
+
   return (
-    <div className="space-y-6 max-w-5xl mx-auto font-mono">
+    <div className="space-y-6 max-w-6xl mx-auto font-mono text-xs leading-relaxed">
       {/* Top action row */}
       <div className="flex justify-between items-center flex-wrap gap-4">
         <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-xs border border-terminal-border px-3 py-1.5 hover:bg-terminal-primary/10 transition-colors cursor-pointer"
+          href="/directory"
+          className="inline-flex items-center gap-2 text-xs border border-terminal-border px-3 py-1.5 hover:bg-terminal-primary/10 transition-colors cursor-pointer animate-pulse"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> BACK TO DIRECTORY
         </Link>
@@ -137,6 +141,56 @@ export default async function Page({ params }: PageProps) {
               <span className="text-xs text-terminal-primary/80 uppercase tracking-widest">
                 SECURITY CREDENTIALS VERIFIED - FULL DECRYPTION IN PROGRESS
               </span>
+            </div>
+          )}
+
+          {/* Dynamic Technical Classification Grid (40+ Fields grouped) */}
+          {hasMainClearance && Object.keys(meta).length > 0 && (
+            <div className="border border-terminal-border/40 bg-black/40 p-4 mb-6 space-y-4">
+              <div className="text-[10px] text-white font-extrabold uppercase border-b border-terminal-border/20 pb-1.5 tracking-wider flex items-center gap-1">
+                <Database className="w-4 h-4 text-terminal-primary" /> SECURE TECHNICAL SPECS DATABASE CARD
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-[10px]">
+                {/* Panel 1: Physical Parameters */}
+                <div className="space-y-1.5">
+                  <span className="text-white font-bold block border-b border-terminal-border/10 pb-0.5 uppercase tracking-wider flex items-center gap-1"><HardDrive className="w-3 h-3 text-cyan-400" /> PHYSICAL METRICS</span>
+                  <div><span className="text-terminal-primary/45">COMPOSITION:</span> <span className="text-terminal-primary/90">{meta.material_composition || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">VOLUME:</span> <span className="text-terminal-primary/90">{meta.dimensions_volume || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">MASS:</span> <span className="text-terminal-primary/90">{meta.weight_mass || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">SENTIENCE:</span> <span className="text-terminal-primary/90">{meta.sentience_status || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">COGNITIVE RISK:</span> <span className="text-terminal-primary/90">{meta.cognitive_threat || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">BIO RISK:</span> <span className="text-terminal-primary/90">{meta.biological_hazard || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">TEMPORAL RISK:</span> <span className="text-terminal-primary/90">{meta.temporal_hazard || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">MEMETIC RISK:</span> <span className="text-terminal-primary/90">{meta.memetic_hazard || 'N/A'}</span></div>
+                </div>
+
+                {/* Panel 2: Containment Controls */}
+                <div className="space-y-1.5">
+                  <span className="text-white font-bold block border-b border-terminal-border/10 pb-0.5 uppercase tracking-wider flex items-center gap-1"><Shield className="w-3 h-3 text-yellow-500" /> SITE CONTROLS</span>
+                  <div><span className="text-terminal-primary/45">ACTIVE SITE:</span> <span className="text-terminal-primary/90">{meta.active_site || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">DIRECTOR:</span> <span className="text-terminal-primary/90">{meta.area_director || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">GUARDS:</span> <span className="text-terminal-primary/90">{meta.tactical_guards || 'N/A'} Officers</span></div>
+                  <div><span className="text-terminal-primary/45">TEMP CELL:</span> <span className="text-terminal-primary/90">{meta.temperature_limit || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">PRESSURE CELL:</span> <span className="text-terminal-primary/90">{meta.pressure_limit || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">HUMIDITY:</span> <span className="text-terminal-primary/90">{meta.humidity_limit || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">EM SHIELDING:</span> <span className="text-terminal-primary/90">{meta.em_shielding || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">CROSS-TEST:</span> <span className="text-terminal-primary/90">{meta.cross_testing || 'N/A'}</span></div>
+                </div>
+
+                {/* Panel 3: Inquest Logs */}
+                <div className="space-y-1.5">
+                  <span className="text-white font-bold block border-b border-terminal-border/10 pb-0.5 uppercase tracking-wider flex items-center gap-1"><Calendar className="w-3 h-3 text-red-400" /> HISTORY & ADM</span>
+                  <div><span className="text-terminal-primary/45">RECOVERY DATE:</span> <span className="text-terminal-primary/90">{meta.recovery_date || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">RECOVERY LOC:</span> <span className="text-terminal-primary/90">{meta.recovery_location || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">RECOVERY LEAD:</span> <span className="text-terminal-primary/90">{meta.recovery_lead || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">INCIDENTS:</span> <span className="text-terminal-primary/90">{meta.incident_log_count || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">ANNUAL COST:</span> <span className="text-terminal-primary/90">{meta.containment_cost || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">ETHICS OK:</span> <span className="text-terminal-primary/90">{meta.ethics_clearance || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">LAST AUDIT:</span> <span className="text-terminal-primary/90">{meta.last_audit_date || 'N/A'}</span></div>
+                  <div><span className="text-terminal-primary/45">AUDITOR:</span> <span className="text-terminal-primary/90">{meta.researcher_signature || 'N/A'}</span></div>
+                </div>
+              </div>
             </div>
           )}
 
