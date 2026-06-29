@@ -488,8 +488,11 @@ export async function updateSystemConfig(key: string, value: string) {
     const supabase = await createClient()
     const { profile } = await getUserClearance()
 
-    if (!profile?.is_o5_1) {
-      return { error: 'SECURITY VIOLATION: O5-1 CREDENTIALS REQUIRED.' }
+    const isEthicsLiaison = profile?.profession === 'Ethics Committee Liaison'
+    const isO5 = profile?.is_o5_1
+
+    if (!isO5 && !isEthicsLiaison) {
+      return { error: 'SECURITY VIOLATION: O5-1 OR ETHICS LIAISON CREDENTIALS REQUIRED.' }
     }
 
     const { error } = await supabase
@@ -500,7 +503,13 @@ export async function updateSystemConfig(key: string, value: string) {
       return { error: error.message }
     }
 
+    // Share layout configs via cookies for real-time client component access
+    const cookieStore = await cookies()
+    cookieStore.set(`scp_${key}`, value, { path: '/' })
+
     revalidatePath('/')
+    revalidatePath('/ethics/dashboard')
+    revalidatePath('/admin')
     return { success: true }
   } catch (err: any) {
     return { error: err.message || 'An unexpected error occurred.' }

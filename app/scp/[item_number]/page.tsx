@@ -5,7 +5,7 @@ import TerminalImageFrame from '@/components/TerminalImageFrame'
 import TerminalAudioPlayer from '@/components/TerminalAudioPlayer'
 import DeleteScpButton from '@/components/DeleteScpButton'
 import Link from 'next/link'
-import { ArrowLeft, ShieldCheck, ShieldAlert, Edit, HelpCircle, HardDrive, Shield, Calendar, Database, AlertOctagon, Skull, Thermometer, Wind, Eye, Compass, UserCheck, ShieldClose } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, ShieldAlert, Edit, HelpCircle, HardDrive, Shield, Calendar, Database, AlertOctagon, Skull, Thermometer, Wind, Eye, Compass, UserCheck, ShieldClose, Volume2 } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
 export const revalidate = 0 // Disable page caching for real-time metadata syncing
@@ -48,6 +48,25 @@ export default async function Page({ params }: PageProps) {
     .eq('scp_item_id', item.id)
     .order('created_at', { ascending: true })
 
+  // 4. Fetch all system configurations
+  const { data: configs } = await supabase
+    .from('system_config')
+    .select('key, value')
+
+  const configMap: Record<string, string> = {
+    classified_watermark: 'false',
+    hologram_projectors: 'true',
+    exposure_warning: 'false',
+    decontamination_active: 'false',
+    sound_warnings: 'false',
+    cross_testing_moratorium: 'false',
+    site_lockdown_sectors: 'None',
+  }
+
+  configs?.forEach((cfg) => {
+    configMap[cfg.key] = cfg.value
+  })
+
   const hasMainClearance = currentLevel >= item.clearance_level_required
   const canEditOrDelete = currentLevel >= 4
 
@@ -68,6 +87,12 @@ export default async function Page({ params }: PageProps) {
 
   const meta = item.metadata || {}
 
+  // Active lockdown sector check (e.g. Lockdown Sector-4 blocks SCP-173 which resides in Sector-4)
+  const isSectorLocked =
+    configMap.site_lockdown_sectors !== 'None' &&
+    meta.active_site &&
+    meta.active_site.toUpperCase().includes(configMap.site_lockdown_sectors.toUpperCase())
+
   // Helper to draw threat level radar ring
   const getThreatColor = (t: string) => {
     switch (t) {
@@ -82,10 +107,38 @@ export default async function Page({ params }: PageProps) {
     }
   }
 
+  if (isSectorLocked) {
+    return (
+      <div className="space-y-6 max-w-xl mx-auto py-12 font-mono text-xs">
+        <div className="border border-red-500 bg-red-950/20 p-6 text-center text-red-500 space-y-4">
+          <AlertOctagon className="w-16 h-16 mx-auto animate-bounce" />
+          <h2 className="text-base font-extrabold uppercase tracking-widest">[CRITICAL LOCKDOWN BLOCKED]</h2>
+          <p className="leading-relaxed">
+            ACCESS PROTOCOL SUSPENDED BY O5 ORDER. THE CONTAINMENT SECTOR HOUSED FOR SUBJECT {item.item_number} ({meta.active_site}) 
+            IS CURRENTLY LOCKED DOWN BY SECTOR MAIN OVERRIDES ({configMap.site_lockdown_sectors.toUpperCase()}).
+          </p>
+          <Link
+            href="/directory"
+            className="inline-block border border-red-500 hover:bg-red-500 hover:text-black px-4 py-1.5 transition-colors font-bold uppercase text-[10px]"
+          >
+            RETURN TO DIRECTORY
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto font-mono text-sm leading-relaxed">
+    <div className="space-y-6 max-w-6xl mx-auto font-mono text-sm leading-relaxed relative">
+      {/* Classified Watermark background */}
+      {configMap.classified_watermark === 'true' && (
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.03] z-0">
+          <span className="text-[120px] font-extrabold rotate-[30deg] tracking-[0.2em] text-terminal-primary uppercase">CLASSIFIED</span>
+        </div>
+      )}
+
       {/* Top action row */}
-      <div className="flex justify-between items-center flex-wrap gap-4">
+      <div className="flex justify-between items-center flex-wrap gap-4 z-10 relative">
         <Link
           href="/directory"
           className="inline-flex items-center gap-2 text-xs border border-terminal-border px-3 py-1.5 hover:bg-terminal-primary/10 transition-colors cursor-pointer"
@@ -106,9 +159,9 @@ export default async function Page({ params }: PageProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative">
         {/* Left Side: Document Body */}
-        <div className="lg:col-span-2 border border-terminal-border p-6 bg-black/60 relative">
+        <div className="lg:col-span-2 border border-terminal-border p-6 bg-black/60 relative overflow-hidden">
           <div className="absolute -top-[1px] -left-[1px] w-4 h-4 border-t-2 border-l-2 border-terminal-primary"></div>
           <div className="absolute -top-[1px] -right-[1px] w-4 h-4 border-t-2 border-r-2 border-terminal-primary"></div>
           <div className="absolute -bottom-[1px] -left-[1px] w-4 h-4 border-b-2 border-l-2 border-terminal-primary"></div>
@@ -155,6 +208,25 @@ export default async function Page({ params }: PageProps) {
               <span className="text-xs text-terminal-primary/80 uppercase tracking-widest">
                 SECURITY CREDENTIALS VERIFIED - FULL DECRYPTION IN PROGRESS
               </span>
+            </div>
+          )}
+
+          {/* Global sound warnings indicator */}
+          {configMap.sound_warnings === 'true' && (
+            <div className="border border-terminal-warn bg-terminal-warn/5 p-2 mb-4 text-[10px] text-terminal-warn font-semibold flex items-center gap-1.5 animate-pulse">
+              <Volume2 className="w-4 h-4 text-terminal-warn animate-bounce" />
+              <span>[NOTICE: ACOUSTIC SYSTEM WARNING IS BROADCASTING LIVE AT THIS TERMINAL CONSOLE]</span>
+            </div>
+          )}
+
+          {/* Global exposure warning banner */}
+          {configMap.exposure_warning === 'true' && (
+            <div className="border border-red-500 bg-red-500/10 p-3 mb-4 text-xs text-red-500 font-extrabold flex items-start gap-2.5">
+              <AlertOctagon className="w-5 h-5 flex-shrink-0 animate-ping" />
+              <div>
+                <span className="block uppercase tracking-wider text-[11px]">RADIATION / BIOHAZARD THREAT DETECTED</span>
+                <span className="block text-[10px] text-red-400 font-semibold mt-0.5">CONTAINMENT DEVIATION DETECTED. WEAR PROTECTIVE SUITS OR ENGAGE LEVEL-2 VACUUM CONTROLLER VALVES BEFORE DISPATCH.</span>
+              </div>
             </div>
           )}
 
@@ -411,13 +483,17 @@ export default async function Page({ params }: PageProps) {
 
                   {/* Middle Column: Cross-Testing, Termination, Alternate dimension */}
                   <div className="space-y-4">
-                    {/* Cross testing stamp */}
+                    {/* Cross testing stamp (Functional check of cross testing moratorium) */}
                     <div className="border border-terminal-border/25 p-3 bg-black/50 relative overflow-hidden flex flex-col justify-between h-[85px]">
                       <span className="text-[9px] text-terminal-primary/45 block uppercase font-semibold">Cross-Testing Matrix</span>
-                      <span className="font-extrabold text-white uppercase text-center block text-[13px] tracking-widest">{meta.cross_testing || 'Suspended'}</span>
-                      <div className="absolute top-2 right-2 opacity-15 rotate-12">
-                        {meta.cross_testing === 'Authorized' ? <ShieldCheck className="w-14 h-14" /> : <ShieldClose className="w-14 h-14" />}
-                      </div>
+                      <span className="font-extrabold text-white uppercase text-center block text-[13px] tracking-widest">
+                        {configMap.cross_testing_moratorium === 'true' ? 'MORATORIUM' : (meta.cross_testing || 'Suspended')}
+                      </span>
+                      {configMap.hologram_projectors === 'true' && (
+                        <div className="absolute top-2 right-2 opacity-15 rotate-12">
+                          {meta.cross_testing === 'Authorized' && configMap.cross_testing_moratorium !== 'true' ? <ShieldCheck className="w-14 h-14" /> : <ShieldClose className="w-14 h-14" />}
+                        </div>
+                      )}
                     </div>
 
                     {/* Termination Skull Alert */}
@@ -594,40 +670,49 @@ export default async function Page({ params }: PageProps) {
             </div>
           )}
 
+          {/* Media Attachments Sidebar (with Decontamination active check) */}
           <div className="border border-terminal-border p-4 bg-black/40">
             <h3 className="text-xs font-bold border-b border-terminal-border/40 pb-2 mb-3 tracking-wider flex items-center gap-1.5">
               <HelpCircle className="w-4 h-4" /> VISUAL & AUDITORY FILES
             </h3>
             
-            {resources && resources.length > 0 ? (
-              <div className="space-y-4 flex flex-col items-center">
-                {resources.map((res) => {
-                  if (res.type === 'image') {
-                    return (
-                      <TerminalImageFrame
-                        key={res.id}
-                        url={res.url}
-                        caption={res.caption || ''}
-                        classification={item.object_class}
-                      />
-                    )
-                  }
-                  if (res.type === 'audio') {
-                    return (
-                      <TerminalAudioPlayer
-                        key={res.id}
-                        url={res.url}
-                        caption={res.caption || ''}
-                      />
-                    )
-                  }
-                  return null
-                })}
+            {configMap.decontamination_active === 'true' ? (
+              <div className="border border-red-500 bg-red-950/20 py-10 px-4 text-center text-red-500 font-bold tracking-widest text-[10px] space-y-2">
+                <AlertOctagon className="w-8 h-8 mx-auto animate-ping" />
+                <span>[DECONTAMINATION PROCESS ACTIVE]</span>
+                <span className="block font-normal text-red-400 lowercase">[visual feeds offline for sterilization]</span>
               </div>
             ) : (
-              <p className="text-xs text-terminal-primary/40 text-center py-8">
-                NO MEDIA ATTACHMENTS DETECTED FOR THIS SUBJECT.
-              </p>
+              resources && resources.length > 0 ? (
+                <div className="space-y-4 flex flex-col items-center">
+                  {resources.map((res) => {
+                    if (res.type === 'image') {
+                      return (
+                        <TerminalImageFrame
+                          key={res.id}
+                          url={res.url}
+                          caption={res.caption || ''}
+                          classification={item.object_class}
+                        />
+                      )
+                    }
+                    if (res.type === 'audio') {
+                      return (
+                        <TerminalAudioPlayer
+                          key={res.id}
+                          url={res.url}
+                          caption={res.caption || ''}
+                        />
+                      )
+                    }
+                    return null
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-terminal-primary/40 text-center py-8">
+                  NO MEDIA ATTACHMENTS DETECTED FOR THIS SUBJECT.
+                </p>
+              )
             )}
           </div>
 

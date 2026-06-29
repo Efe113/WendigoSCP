@@ -3,7 +3,7 @@
 import React, { useState, useActionState, useTransition } from 'react'
 import { updateUserStatus, updateSystemConfig, createCustomRole } from '@/app/actions/scp'
 import TerminalCard from '@/components/TerminalCard'
-import { Shield, ShieldAlert, CheckCircle, Radio, Settings, Users, FilePlus, BarChart2, Volume2, ShieldCheck, Zap, AlertTriangle, Eye, RefreshCw, RefreshCw as RotateCcw } from 'lucide-react'
+import { Shield, ShieldAlert, CheckCircle, Radio, Settings, Users, FilePlus, BarChart2, Volume2, ShieldCheck, Zap, AlertTriangle, Eye, RefreshCw, RefreshCw as RotateCcw, ShieldAlert as DroneIcon, Cpu } from 'lucide-react'
 
 interface Profile {
   id: string
@@ -88,7 +88,7 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
       <div className="flex border-b border-terminal-border flex-wrap">
         {[
           { id: 'approvals', label: 'REGISTRATION QUEUE', icon: Users, badge: pendingProfiles.length },
-          { id: 'system', label: 'MAINFRAME CONFIG', icon: Settings },
+          { id: 'system', label: 'MAINFRAME CONFIG (40 OVERRIDES)', icon: Settings },
           { id: 'roles', label: 'CUSTOM ROLES BUILDER', icon: FilePlus },
           { id: 'stats', label: 'DATABASE METRICS', icon: BarChart2 },
         ].map((t) => {
@@ -169,39 +169,34 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
           </div>
         )}
 
-        {/* Tab 2: System Settings (20 Mainframe Commands Grid) */}
+        {/* Tab 2: System Settings (40 Mainframe Commands Grid) */}
         {activeTab === 'system' && (
           <div className="space-y-6">
-            {/* Top Critical Controls Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <TerminalCard title="Maintenance Override" status={config.maintenance_mode === 'true' ? 'warn' : 'default'} statusText="SYS_LOCK">
-                <div className="space-y-3 py-1">
-                  <p className="text-terminal-primary/70 text-[10px]">
-                    Blocks non-O5 credentials from accessing the terminal mainframe.
-                  </p>
-                  <div className="flex justify-between items-center bg-black/60 p-2 border border-terminal-border/30">
-                    <span className="font-bold text-[10px]">{config.maintenance_mode === 'true' ? 'ON' : 'OFF'}</span>
+            <TerminalCard title="O5 SECURE MAINFRAME OVERRIDES HUB (40 CHANNELS)" status="error" statusText="O5_MAINFRAME">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 py-2">
+                {/* 1. Maintenance Mode */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">1. MAINTENANCE MODE</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.maintenance_mode === 'true' ? 'ACTIVE' : 'INACTIVE'}</span>
                     <button
                       onClick={() => handleConfigChange('maintenance_mode', config.maintenance_mode === 'true' ? 'false' : 'true')}
                       disabled={isPending}
-                      className="px-2.5 py-1 text-[10px] border border-terminal-primary hover:bg-terminal-primary hover:text-black font-bold cursor-pointer"
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
                     >
-                      TOGGLE LOCKDOWN
+                      TOGGLE
                     </button>
                   </div>
                 </div>
-              </TerminalCard>
 
-              <TerminalCard title="Threat Condition Level" status="default" statusText="THREAT">
-                <div className="space-y-3 py-1">
-                  <p className="text-terminal-primary/70 text-[10px]">
-                    Defines active threat level displayed across the Portal homepage.
-                  </p>
+                {/* 2. Threat conditions */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">2. THREAT CONDITIONS</span>
                   <select
                     value={config.threat_level || 'LEVEL_GREEN'}
                     onChange={(e) => handleConfigChange('threat_level', e.target.value)}
                     disabled={isPending}
-                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-xs px-2.5 py-1"
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
                   >
                     <option value="LEVEL_GREEN">LEVEL_GREEN (SAFE)</option>
                     <option value="LEVEL_YELLOW">LEVEL_YELLOW (EUCLID)</option>
@@ -209,33 +204,10 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                     <option value="LEVEL_BLACK">LEVEL_BLACK (APOLLYON)</option>
                   </select>
                 </div>
-              </TerminalCard>
 
-              <TerminalCard title="Warhead Countdown Timer" status={config.alpha_warhead_active === 'true' ? 'error' : 'default'} statusText="WARHEAD_DET">
-                <div className="space-y-3 py-1">
-                  <p className="text-terminal-primary/70 text-[10px]">
-                    Set detonation duration in seconds for self-destruct protocol.
-                  </p>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={config.alpha_warhead_time || '90'}
-                      onChange={(e) => handleConfigChange('alpha_warhead_time', e.target.value)}
-                      disabled={isPending}
-                      className="w-20 bg-black text-terminal-primary border border-terminal-border/40 text-xs px-2.5 py-1"
-                    />
-                    <span className="text-[10px] text-terminal-primary/50 self-center">SECONDS</span>
-                  </div>
-                </div>
-              </TerminalCard>
-            </div>
-
-            {/* Overrides Mainframe 20 Commands Dashboard */}
-            <TerminalCard title="MAINFRAME CONFIGURATION OVERRIDES HUB (20 CONFIGURATION PANELS)" status="info" statusText="MAINFRAME_HUB">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 py-2">
-                {/* 1. Red Alert */}
+                {/* 3. Red Alert */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5 text-red-500" /> 1. RED ALERT CLAXON</span>
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5 text-red-500" /> 3. RED ALERT CLAXON</span>
                   <div className="flex justify-between items-center text-[10px]">
                     <span>STATUS: {config.red_alert === 'true' ? 'ACTIVE' : 'MUTED'}</span>
                     <button
@@ -248,11 +220,11 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 2. Blackout Mode */}
+                {/* 4. Power Blackout */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-yellow-500" /> 2. POWER BLACKOUT</span>
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-yellow-500" /> 4. POWER BLACKOUT</span>
                   <div className="flex justify-between items-center text-[10px]">
-                    <span>STATUS: {config.blackout_mode === 'true' ? 'BLACKOUT' : 'FULL POWER'}</span>
+                    <span>STATUS: {config.blackout_mode === 'true' ? 'BLACKOUT' : 'ONLINE'}</span>
                     <button
                       onClick={() => handleConfigChange('blackout_mode', config.blackout_mode === 'true' ? 'false' : 'true')}
                       disabled={isPending}
@@ -263,9 +235,9 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 3. Alpha Warhead protocol */}
+                {/* 5. Alpha Warhead protocol */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5 text-red-500" /> 3. ALPHA WARHEAD PROTOCOL</span>
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5 text-red-500" /> 5. ALPHA WARHEAD PROTOCOL</span>
                   <div className="flex justify-between items-center text-[10px]">
                     <span>STATUS: {config.alpha_warhead_active === 'true' ? 'ARMED' : 'SAFE'}</span>
                     <button
@@ -278,16 +250,31 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 4. MTF Deployment */}
+                {/* 6. Alpha warhead timer */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Users className="w-3.5 h-3.5 text-blue-400" /> 4. MTF DISPATCH</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">6. WARHEAD COUNTDOWN</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={config.alpha_warhead_time || '90'}
+                      onChange={(e) => handleConfigChange('alpha_warhead_time', e.target.value)}
+                      disabled={isPending}
+                      className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                    />
+                    <span className="text-[9px] text-terminal-primary/50 self-center">SEC</span>
+                  </div>
+                </div>
+
+                {/* 7. MTF Dispatch */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">7. MTF DISPATCH</span>
                   <select
                     value={config.mtf_dispatched || 'None'}
                     onChange={(e) => handleConfigChange('mtf_dispatched', e.target.value)}
                     disabled={isPending}
                     className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
                   >
-                    <option value="None">No MTF Dispatched</option>
+                    <option value="None">None</option>
                     <option value="Alpha-1">MTF Alpha-1 (Red Right Hand)</option>
                     <option value="Epsilon-11">MTF Epsilon-11 (Nine-Tailed Fox)</option>
                     <option value="Omega-7">MTF Omega-7 (Pandora's Box)</option>
@@ -295,11 +282,11 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </select>
                 </div>
 
-                {/* 5. Ethics Auditing */}
+                {/* 8. Ethics Audits */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-green-500" /> 5. ETHICS AUDITS</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">8. ETHICS AUDITS</span>
                   <div className="flex justify-between items-center text-[10px]">
-                    <span>STATUS: {config.ethics_audits === 'true' ? 'ENABLED' : 'BYPASSED'}</span>
+                    <span>STATUS: {config.ethics_audits === 'true' ? 'ON' : 'OFF'}</span>
                     <button
                       onClick={() => handleConfigChange('ethics_audits', config.ethics_audits === 'true' ? 'false' : 'true')}
                       disabled={isPending}
@@ -310,11 +297,11 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 6. Automated Security Alarm */}
+                {/* 9. Security Alarm */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Volume2 className="w-3.5 h-3.5 text-orange-400" /> 6. SECURITY SIREN</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">9. SECURITY ALARM</span>
                   <div className="flex justify-between items-center text-[10px]">
-                    <span>ALARM: {config.security_alarm === 'true' ? 'ON' : 'OFF'}</span>
+                    <span>STATUS: {config.security_alarm === 'true' ? 'ON' : 'OFF'}</span>
                     <button
                       onClick={() => handleConfigChange('security_alarm', config.security_alarm === 'true' ? 'false' : 'true')}
                       disabled={isPending}
@@ -325,11 +312,11 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 7. Acoustic Warning Broadcaster */}
+                {/* 10. Acoustic Warnings */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Volume2 className="w-3.5 h-3.5 text-purple-400" /> 7. ACOUSTIC BROADCAST</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">10. ACOUSTIC BROADCAST</span>
                   <div className="flex justify-between items-center text-[10px]">
-                    <span>STATUS: {config.sound_warnings === 'true' ? 'BROADCASTING' : 'MUTED'}</span>
+                    <span>STATUS: {config.sound_warnings === 'true' ? 'ON' : 'OFF'}</span>
                     <button
                       onClick={() => handleConfigChange('sound_warnings', config.sound_warnings === 'true' ? 'false' : 'true')}
                       disabled={isPending}
@@ -340,11 +327,11 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 8. Exposure Warnings */}
+                {/* 11. Exposure warning */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5 text-yellow-500" /> 8. EXPOSURE WARN</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">11. EXPOSURE WARN</span>
                   <div className="flex justify-between items-center text-[10px]">
-                    <span>STATUS: {config.exposure_warning === 'true' ? 'WARNING' : 'NORMAL'}</span>
+                    <span>STATUS: {config.exposure_warning === 'true' ? 'ON' : 'OFF'}</span>
                     <button
                       onClick={() => handleConfigChange('exposure_warning', config.exposure_warning === 'true' ? 'false' : 'true')}
                       disabled={isPending}
@@ -355,9 +342,9 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 9. Amnestics A */}
+                {/* 12. Amnestics A */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-1.5">
-                  <span className="text-white font-bold block text-[10px] uppercase">9. AMNESTICS CLASS-A</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">12. AMNESTICS CLASS-A</span>
                   <div className="flex justify-between items-center">
                     <input
                       type="range"
@@ -366,15 +353,15 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                       value={config.amnestic_stock_a || '100'}
                       onChange={(e) => handleConfigChange('amnestic_stock_a', e.target.value)}
                       disabled={isPending}
-                      className="w-full mr-2 cursor-pointer h-1.5 bg-neutral-800"
+                      className="w-full mr-2 cursor-pointer h-1"
                     />
                     <span className="text-[10px] font-bold">{config.amnestic_stock_a || '100'}%</span>
                   </div>
                 </div>
 
-                {/* 10. Amnestics B */}
+                {/* 13. Amnestics B */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-1.5">
-                  <span className="text-white font-bold block text-[10px] uppercase">10. AMNESTICS CLASS-B</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">13. AMNESTICS CLASS-B</span>
                   <div className="flex justify-between items-center">
                     <input
                       type="range"
@@ -383,15 +370,15 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                       value={config.amnestic_stock_b || '100'}
                       onChange={(e) => handleConfigChange('amnestic_stock_b', e.target.value)}
                       disabled={isPending}
-                      className="w-full mr-2 cursor-pointer h-1.5 bg-neutral-800"
+                      className="w-full mr-2 cursor-pointer h-1"
                     />
                     <span className="text-[10px] font-bold">{config.amnestic_stock_b || '100'}%</span>
                   </div>
                 </div>
 
-                {/* 11. Amnestics C */}
+                {/* 14. Amnestics C */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-1.5">
-                  <span className="text-white font-bold block text-[10px] uppercase">11. AMNESTICS CLASS-C</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">14. AMNESTICS CLASS-C</span>
                   <div className="flex justify-between items-center">
                     <input
                       type="range"
@@ -400,15 +387,15 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                       value={config.amnestic_stock_c || '100'}
                       onChange={(e) => handleConfigChange('amnestic_stock_c', e.target.value)}
                       disabled={isPending}
-                      className="w-full mr-2 cursor-pointer h-1.5 bg-neutral-800"
+                      className="w-full mr-2 cursor-pointer h-1"
                     />
                     <span className="text-[10px] font-bold">{config.amnestic_stock_c || '100'}%</span>
                   </div>
                 </div>
 
-                {/* 12. Radiation Limit */}
+                {/* 15. Radiation Threshold */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase">12. RAD THRESHOLD</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">15. RAD THRESHOLD</span>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -421,9 +408,9 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 13. Intruder count */}
+                {/* 16. Intruder attempts */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase">13. INTRUDER LIMIT</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">16. INTRUSION LIMIT</span>
                   <input
                     type="number"
                     value={config.intrusion_attempts || '0'}
@@ -433,9 +420,9 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   />
                 </div>
 
-                {/* 14. Cognitohazard filter strength */}
+                {/* 17. Cognitohazard filter */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-1.5">
-                  <span className="text-white font-bold block text-[10px] uppercase">14. COG FILTER</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">17. COG FILTER STRENGTH</span>
                   <div className="flex justify-between items-center">
                     <input
                       type="range"
@@ -444,15 +431,15 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                       value={config.cog_filter_strength || '100'}
                       onChange={(e) => handleConfigChange('cog_filter_strength', e.target.value)}
                       disabled={isPending}
-                      className="w-full mr-2 cursor-pointer h-1.5 bg-neutral-800"
+                      className="w-full mr-2 cursor-pointer h-1"
                     />
                     <span className="text-[10px] font-bold">{config.cog_filter_strength || '100'}%</span>
                   </div>
                 </div>
 
-                {/* 15. Psych eval interval */}
+                {/* 18. Eval interval */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase">15. PSYCH INTERVAL</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">18. EVAL INTERVAL</span>
                   <div className="flex gap-2">
                     <input
                       type="number"
@@ -465,9 +452,9 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </div>
                 </div>
 
-                {/* 16. Global Redaction Level */}
+                {/* 19. Redaction Mode */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-cyan-400" /> 16. REDACTION MODE</span>
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-cyan-400" /> 19. REDACTION MODE</span>
                   <select
                     value={config.redaction_level || 'hover'}
                     onChange={(e) => handleConfigChange('redaction_level', e.target.value)}
@@ -479,9 +466,9 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </select>
                 </div>
 
-                {/* 17. CRT Scanline density */}
+                {/* 20. Scanline Type */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase">17. SCANLINE TYPE</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">20. SCANLINE TYPE</span>
                   <select
                     value={config.scanline_density || 'medium'}
                     onChange={(e) => handleConfigChange('scanline_density', e.target.value)}
@@ -494,51 +481,312 @@ export default function O5ControlConsole({ pendingProfiles, allProfiles, config 
                   </select>
                 </div>
 
-                {/* 18. Encryption Key rotation */}
+                {/* 21. Decontamination Active */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5 text-blue-500 animate-spin" style={{ animationDuration: '6s' }} /> 18. KEY ROTATION</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">21. DECON PROTOCOL</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.decontamination_active === 'true' ? 'ACTIVE' : 'MUTED'}</span>
+                    <button
+                      onClick={() => handleConfigChange('decontamination_active', config.decontamination_active === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 22. Neural Link established */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><Cpu className="w-3.5 h-3.5 text-cyan-400" /> 22. NEURAL BRAIN LINK</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.neural_link_established === 'true' ? 'LINKED' : 'UNLINKED'}</span>
+                    <button
+                      onClick={() => handleConfigChange('neural_link_established', config.neural_link_established === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 23. Containment Breach active */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5 text-red-500" /> 23. CORE BREACH STATUS</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.containment_breach_active === 'true' ? 'BREACH' : 'SECURED'}</span>
+                    <button
+                      onClick={() => handleConfigChange('containment_breach_active', config.containment_breach_active === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 24. Breached SCP count */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">24. BREACHED SCP COUNT</span>
                   <input
-                    type="date"
-                    value={config.key_rotation_date || '2026-06-01'}
-                    onChange={(e) => handleConfigChange('key_rotation_date', e.target.value)}
+                    type="number"
+                    value={config.breached_scp_count || '0'}
+                    onChange={(e) => handleConfigChange('breached_scp_count', e.target.value)}
                     disabled={isPending}
                     className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
                   />
                 </div>
 
-                {/* 19. Site Lockdown Sectors */}
+                {/* 25. Gate A status */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase">19. SECTOR LOCKDOWNS</span>
+                  <span className="text-white font-bold block text-[10px] uppercase">25. GATE A DEFENSE</span>
+                  <select
+                    value={config.gate_a_status || 'LOCKED'}
+                    onChange={(e) => handleConfigChange('gate_a_status', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    <option value="LOCKED">LOCKED (Standard)</option>
+                    <option value="OPEN">OPEN (Evacuation)</option>
+                    <option value="OVERRIDDEN">OVERRIDDEN (O5 Command)</option>
+                  </select>
+                </div>
+
+                {/* 26. Gate B status */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">26. GATE B DEFENSE</span>
+                  <select
+                    value={config.gate_b_status || 'LOCKED'}
+                    onChange={(e) => handleConfigChange('gate_b_status', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    <option value="LOCKED">LOCKED (Standard)</option>
+                    <option value="OPEN">OPEN (Evacuation)</option>
+                    <option value="OVERRIDDEN">OVERRIDDEN (O5 Command)</option>
+                  </select>
+                </div>
+
+                {/* 27. Classified Watermark */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">27. WATERMARK</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.classified_watermark === 'true' ? 'ON' : 'OFF'}</span>
+                    <button
+                      onClick={() => handleConfigChange('classified_watermark', config.classified_watermark === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 28. Site-19 Power Source */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">28. GRID POWER SOURCE</span>
+                  <select
+                    value={config.site19_power_source || 'Nuclear Grid'}
+                    onChange={(e) => handleConfigChange('site19_power_source', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    <option value="Nuclear Grid">Nuclear Reactor Node</option>
+                    <option value="Geothermal">Geothermal Well</option>
+                    <option value="Backup Generator">Hydro-Diesel Backup</option>
+                  </select>
+                </div>
+
+                {/* 29. Hologram Projectors */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">29. HOLO PROJECTORS</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STAMPS: {config.hologram_projectors === 'true' ? 'ON' : 'OFF'}</span>
+                    <button
+                      onClick={() => handleConfigChange('hologram_projectors', config.hologram_projectors === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 30. Amnestic dispenser valve */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">30. AMNESTICS VALVE</span>
+                  <select
+                    value={config.amnestic_dispenser_valve || 'CLOSED'}
+                    onChange={(e) => handleConfigChange('amnestic_dispenser_valve', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    <option value="CLOSED">CLOSED (Secured)</option>
+                    <option value="OPEN">OPEN (Gaseous Dispensation)</option>
+                  </select>
+                </div>
+
+                {/* 31. Nuclear Silo status */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">31. SILO STATUS</span>
+                  <select
+                    value={config.nuclear_silo_status || 'SECURED'}
+                    onChange={(e) => handleConfigChange('nuclear_silo_status', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    <option value="SECURED">SECURED (Silo Blocked)</option>
+                    <option value="ARMED">ARMED (Silo Open)</option>
+                  </select>
+                </div>
+
+                {/* 32. Cognitive shield frequency */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">32. COG SHIELD FREQ</span>
                   <input
                     type="text"
-                    value={config.site_lockdown_sectors || 'None'}
-                    onChange={(e) => handleConfigChange('site_lockdown_sectors', e.target.value)}
+                    value={config.cognitive_shield_frequency || '14.8Hz'}
+                    onChange={(e) => handleConfigChange('cognitive_shield_frequency', e.target.value)}
                     disabled={isPending}
-                    placeholder="e.g. Sector-4"
                     className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
                   />
                 </div>
 
-                {/* 20. Mainframe Cookie Amnestic Reset */}
+                {/* 33. Bio decon level */}
                 <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
-                  <span className="text-white font-bold block text-[10px] uppercase">20. AMNESTICS DISPENSE</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm('Initiate Class-A memory wipe? This will clear local authorization cookies and log you out.')) {
-                        document.cookie.split(";").forEach(function(c) { 
-                          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-                        });
-                        window.location.href = '/login';
-                      }
-                    }}
-                    className="w-full py-1.5 bg-red-950/20 hover:bg-terminal-error hover:text-black border border-terminal-error/45 text-[10px] font-bold uppercase transition-colors"
+                  <span className="text-white font-bold block text-[10px] uppercase">33. BIO DECON LEVEL</span>
+                  <select
+                    value={config.biological_decon_level || 'Level 2'}
+                    onChange={(e) => handleConfigChange('biological_decon_level', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
                   >
-                    WIPE MEMORY
-                  </button>
+                    <option value="Level 1">Level 1 (Standard)</option>
+                    <option value="Level 2">Level 2 (Quarantine)</option>
+                    <option value="Level 3">Level 3 (Sterile)</option>
+                    <option value="Level 4">Level 4 (Vacuum Seal)</option>
+                    <option value="Level 5">Level 5 (Incinerate)</option>
+                  </select>
+                </div>
+
+                {/* 34. Security drone patrol */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase flex items-center gap-1"><DroneIcon className="w-3.5 h-3.5 text-cyan-400" /> 34. DRONE PATROL</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.security_drone_patrol === 'true' ? 'ACTIVE' : 'MUTED'}</span>
+                    <button
+                      onClick={() => handleConfigChange('security_drone_patrol', config.security_drone_patrol === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 35. Backup grid power */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">35. BACKUP POWER</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.site_grid_backup === 'true' ? 'ONLINE' : 'OFFLINE'}</span>
+                    <button
+                      onClick={() => handleConfigChange('site_grid_backup', config.site_grid_backup === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 36. Global research clearance limits */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">36. GLOBAL LEVEL LIMIT</span>
+                  <select
+                    value={config.research_level_limit || '5'}
+                    onChange={(e) => handleConfigChange('research_level_limit', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  >
+                    {[1,2,3,4,5].map(l => <option key={l} value={String(l)}>Limit Level {l}</option>)}
+                  </select>
+                </div>
+
+                {/* 37. Cross testing moratorium */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">37. CROSS MORATORIUM</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.cross_testing_moratorium === 'true' ? 'ACTIVE' : 'OFF'}</span>
+                    <button
+                      onClick={() => handleConfigChange('cross_testing_moratorium', config.cross_testing_moratorium === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 38. Anomaly scanner pulse */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">38. SCANNER RATE</span>
+                  <input
+                    type="text"
+                    value={config.anomaly_scanner_pulse || '2.5s'}
+                    onChange={(e) => handleConfigChange('anomaly_scanner_pulse', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  />
+                </div>
+
+                {/* 39. Staff evaluation moratorium */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">39. EVAL MORATORIUM</span>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span>STATUS: {config.staff_evaluation_moratorium === 'true' ? 'ACTIVE' : 'OFF'}</span>
+                    <button
+                      onClick={() => handleConfigChange('staff_evaluation_moratorium', config.staff_evaluation_moratorium === 'true' ? 'false' : 'true')}
+                      disabled={isPending}
+                      className="px-2 py-0.5 border border-terminal-primary text-[9px] font-bold"
+                    >
+                      TOGGLE
+                    </button>
+                  </div>
+                </div>
+
+                {/* 40. Amnestic injection dosage */}
+                <div className="border border-terminal-border/40 p-2.5 bg-black/40 space-y-2">
+                  <span className="text-white font-bold block text-[10px] uppercase">40. AMNESTICS DOSAGE</span>
+                  <input
+                    type="text"
+                    value={config.amnestic_injection_dosage || '15ml'}
+                    onChange={(e) => handleConfigChange('amnestic_injection_dosage', e.target.value)}
+                    disabled={isPending}
+                    className="w-full bg-black text-terminal-primary border border-terminal-border/40 text-[10px] px-2 py-0.5"
+                  />
                 </div>
               </div>
             </TerminalCard>
+
+            {/* Simulated Class-A Amnestics wipe */}
+            <div className="border border-terminal-border bg-black/45 p-4 flex justify-between items-center text-xs">
+              <span className="text-terminal-primary/75">SYSTEM COMMAND CHANNEL // WIPE CURRENT AUTHORIZATION SESSION</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Initiate Class-A memory wipe? This will clear local authorization cookies and log you out.')) {
+                    document.cookie.split(";").forEach(function(c) { 
+                      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                    });
+                    window.location.href = '/login';
+                  }
+                }}
+                className="px-4 py-2 bg-red-950/20 hover:bg-terminal-error hover:text-black border border-terminal-error/45 text-xs font-bold uppercase transition-colors"
+              >
+                DISPENSE AMNESTICS (WIPE COOKIES)
+              </button>
+            </div>
           </div>
         )}
 
