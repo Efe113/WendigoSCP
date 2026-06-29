@@ -382,6 +382,8 @@ export async function signup(prevState: any, formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const username = formData.get('username') as string
+  const profession = formData.get('profession') as string || 'Researcher'
+  const rank = formData.get('rank') as string || 'Level 1 Personnel (Junior)'
 
   if (!email || !password || !username) {
     return { error: 'Username, email and password are required.' }
@@ -394,6 +396,8 @@ export async function signup(prevState: any, formData: FormData) {
     options: {
       data: {
         username,
+        profession,
+        rank,
       },
     },
   })
@@ -405,3 +409,41 @@ export async function signup(prevState: any, formData: FormData) {
   revalidatePath('/')
   return { success: true }
 }
+
+export async function updateUserProfile(prevState: any, formData: FormData) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { error: 'Authentication required.' }
+    }
+
+    const username = formData.get('username') as string
+    const profession = formData.get('profession') as string
+    const rank = formData.get('rank') as string
+
+    if (!username || !profession || !rank) {
+      return { error: 'Username, profession, and rank are required.' }
+    }
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({
+        username,
+        profession,
+        rank,
+      })
+      .eq('id', user.id)
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    revalidatePath('/')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred.' }
+  }
+}
+

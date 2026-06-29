@@ -3,6 +3,7 @@ import './globals.css'
 import Link from 'next/link'
 import { getUserClearance, signOut } from '@/app/actions/scp'
 import ClearanceSwitcher from '@/components/ClearanceSwitcher'
+import MarkdownHelpModal from '@/components/MarkdownHelpModal'
 import { Terminal, Shield, User, Database, Radio, Key, BookOpen, Info, Home } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, realLevel, simulatedLevel, currentLevel } = await getUserClearance()
+  const { user, profile, realLevel, simulatedLevel, currentLevel } = await getUserClearance()
 
   const handleSignOut = async () => {
     'use server'
@@ -60,9 +61,9 @@ export default async function RootLayout({
               </Link>
               {user ? (
                 <div className="flex items-center gap-4 border-l border-terminal-border pl-4">
-                  <span className="text-xs text-terminal-primary/70 flex items-center gap-1">
-                    <User className="w-3.5 h-3.5" /> {user.email?.split('@')[0]}
-                  </span>
+                  <Link href="/login" className="text-xs text-terminal-primary hover:text-white flex items-center gap-1">
+                    <User className="w-3.5 h-3.5" /> {profile?.username || user.email?.split('@')[0]}
+                  </Link>
                   <form action={handleSignOut}>
                     <button type="submit" className="text-xs hover:text-terminal-error text-terminal-primary/60 border border-terminal-border hover:border-terminal-error px-2 py-1 cursor-pointer transition-all">
                       DISCONNECT
@@ -88,6 +89,14 @@ export default async function RootLayout({
               </span>
               <span className="hidden sm:inline border-r border-terminal-border h-3"></span>
               <span className="hidden sm:inline text-[10px]">HOST: db.ptkxaavbjhjmseytrgnh.supabase.co</span>
+              {user && (
+                <>
+                  <span className="hidden lg:inline border-r border-terminal-border h-3"></span>
+                  <span className="hidden lg:inline text-[10px] uppercase text-terminal-primary/80">
+                    ROLE: {profile?.profession || 'RESEARCHER'} // RANK: {profile?.rank || 'Level 1 Personnel (Junior)'}
+                  </span>
+                </>
+              )}
             </div>
             
             <ClearanceSwitcher
@@ -113,6 +122,9 @@ export default async function RootLayout({
             </div>
           </div>
         </footer>
+
+        {/* Global Markdown Help Modal Button */}
+        <MarkdownHelpModal />
       </body>
     </html>
   )
