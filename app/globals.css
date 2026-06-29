@@ -1,26 +1,123 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #050505;
+  --foreground: #00ff66;
+  --primary: #00ff66;
+  --primary-glow: rgba(0, 255, 102, 0.4);
+  --error: #ff3333;
+  --error-glow: rgba(255, 51, 51, 0.4);
+  --warn: #ffaa00;
+  --warn-glow: rgba(255, 170, 0, 0.4);
+  --info: #00aaff;
+  --info-glow: rgba(0, 170, 255, 0.4);
+  --border: #113311;
+  --border-focus: #00ff66;
+  --terminal-font: "Courier New", Courier, monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-terminal-primary: var(--primary);
+  --color-terminal-error: var(--error);
+  --color-terminal-warn: var(--warn);
+  --color-terminal-info: var(--info);
+  --color-terminal-border: var(--border);
+  --color-terminal-border-focus: var(--border-focus);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--terminal-font);
+  background-image: 
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 4px, 6px 100%;
+  text-shadow: 0 0 2px rgba(0, 255, 102, 0.3);
+  position: relative;
+  min-height: 100vh;
+}
+
+/* CRT Scanline Flicker overlay */
+body::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 3px, 3px 100%;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+/* Terminal Blink Animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.terminal-cursor::after {
+  content: "█";
+  margin-left: 4px;
+  animation: blink 1s infinite;
+  color: var(--primary);
+}
+
+/* Custom terminal scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #020202;
+  border-left: 1px solid var(--border);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 1px solid var(--primary);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Redacted Text style */
+.redacted-glow {
+  box-shadow: 0 0 5px var(--primary-glow);
+}
+
+.glow-text-green {
+  text-shadow: 0 0 5px var(--primary-glow);
+}
+
+.glow-text-red {
+  text-shadow: 0 0 5px var(--error-glow);
+}
+
+.glow-text-warn {
+  text-shadow: 0 0 5px var(--warn-glow);
+}
+
+.glow-border-green {
+  box-shadow: 0 0 8px var(--primary-glow);
+  border-color: var(--primary);
+}
+
+.glow-border-red {
+  box-shadow: 0 0 8px var(--error-glow);
+  border-color: var(--error);
+}
+
+/* Hacker-terminal inputs */
+input, select, textarea {
+  background-color: #020202 !important;
+  color: var(--primary) !important;
+  border: 1px solid var(--border) !important;
+  font-family: var(--terminal-font) !important;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 5px var(--primary-glow) !important;
 }
