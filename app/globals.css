@@ -190,4 +190,37 @@ input:focus, select:focus, textarea:focus {
   animation: textFadeIn 0.3s ease-out forwards;
 }
 
+/* Screamer Screen Shake Animation */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-3px, 2px) rotate(-1deg); }
+  20% { transform: translate(3px, -2px) rotate(1deg); }
+  30% { transform: translate(-2px, -3px) rotate(-0.5deg); }
+  40% { transform: translate(2px, 3px) rotate(0.5deg); }
+  50% { transform: translate(-3px, 1px) rotate(-1deg); }
+  60% { transform: translate(3px, -1px) rotate(1deg); }
+  70% { transform: translate(-2px, 2px) rotate(-0.5deg); }
+  85% { transform: translate(2px, -2px) rotate(1deg); }
+}
+.screamer-shake-active {
+  animation: screenShake 0.15s infinite linear;
+}
+
+/* Red noise glitch scanlines */
+@keyframes redNoise {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.35; }
+}
+.red-noise-overlay {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 0, 0, 0.15),
+    rgba(255, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  animation: redNoise 0.05s infinite;
+}
+
+
 

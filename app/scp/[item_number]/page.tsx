@@ -7,6 +7,8 @@ import DeleteScpButton from '@/components/DeleteScpButton'
 import Link from 'next/link'
 import { ArrowLeft, ShieldCheck, ShieldAlert, Edit, HelpCircle, HardDrive, Shield, Calendar, Database, AlertOctagon, Skull, Thermometer, Wind, Eye, Compass, UserCheck, ShieldClose, Volume2 } from 'lucide-react'
 import { notFound } from 'next/navigation'
+import SiteHorrorEngine from '@/components/SiteHorrorEngine'
+import DecayingText from '@/components/DecayingText'
 
 export const revalidate = 0 // Disable page caching for real-time metadata syncing
 
@@ -130,6 +132,9 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto font-mono text-sm leading-relaxed relative">
+      {/* Central Horror Engine Component */}
+      <SiteHorrorEngine itemNumber={item.item_number} objectClass={item.object_class} />
+
       {/* Classified Watermark background */}
       {configMap.classified_watermark === 'true' && (
         <div className="fixed inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.03] z-0">
@@ -553,7 +558,9 @@ export default async function Page({ params }: PageProps) {
               </h3>
               {hasMainClearance ? (
                 <div className="text-sm leading-relaxed">
-                  <ScpMarkdown content={item.containment_procedures} />
+                  <DecayingText text={item.containment_procedures}>
+                    {(glitched) => <ScpMarkdown content={glitched} />}
+                  </DecayingText>
                 </div>
               ) : (
                 <div className="relative">
@@ -581,7 +588,9 @@ export default async function Page({ params }: PageProps) {
               </h3>
               {hasMainClearance ? (
                 <div className="text-sm leading-relaxed">
-                  <ScpMarkdown content={item.description} />
+                  <DecayingText text={item.description}>
+                    {(glitched) => <ScpMarkdown content={glitched} />}
+                  </DecayingText>
                 </div>
               ) : (
                 <div className="relative">
@@ -624,7 +633,9 @@ export default async function Page({ params }: PageProps) {
                       {/* Addendum Body */}
                       {hasAddendumClearance ? (
                         <div className="text-sm leading-relaxed">
-                          <ScpMarkdown content={addendum.content} />
+                          <DecayingText text={addendum.content}>
+                            {(glitched) => <ScpMarkdown content={glitched} />}
+                          </DecayingText>
                         </div>
                       ) : (
                         <div className="relative py-2">
