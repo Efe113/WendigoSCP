@@ -58,6 +58,81 @@ export async function updateSession(request: NextRequest) {
     path.includes('.') || 
     path.startsWith('/api')
 
+  const crtStyles = `
+    @keyframes flicker {
+      0% { opacity: 0.98; }
+      50% { opacity: 1; }
+      100% { opacity: 0.99; }
+    }
+    body { 
+      background: #030303; 
+      font-family: monospace; 
+      padding: 50px; 
+      text-align: center; 
+      position: relative; 
+      animation: flicker 0.15s infinite;
+      overflow: hidden;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.3) 50%
+      );
+      background-size: 100% 4px;
+      z-index: 99;
+      pointer-events: none;
+    }
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0.85) 100%);
+      z-index: 100;
+      pointer-events: none;
+    }
+    .container {
+      border: 1px solid currentColor;
+      background: rgba(0,0,0,0.8);
+      padding: 40px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      z-index: 10;
+      position: relative;
+    }
+    h1 { 
+      text-shadow: 0 0 8px currentColor; 
+      font-size: 20px; 
+      margin-bottom: 20px; 
+      letter-spacing: 2px;
+    }
+    p { font-size: 12px; margin: 12px 0; }
+    a { 
+      color: inherit; 
+      text-decoration: none; 
+      border: 1px solid currentColor; 
+      padding: 8px 18px; 
+      font-size: 11px; 
+      font-weight: bold; 
+      transition: all 0.2s; 
+      background: transparent;
+      display: inline-block;
+      margin-top: 20px;
+    }
+    a:hover { 
+      background: currentColor; 
+      color: #000;
+      box-shadow: 0 0 10px currentColor; 
+    }
+  `
+
   // Enforce Maintenance Mode
   if (isMaintenance && !profile?.is_o5_1 && !isPublicPage) {
     return new Response(
@@ -65,19 +140,20 @@ export async function updateSession(request: NextRequest) {
          <head>
            <title>SCP TERMINAL - OFFLINE</title>
            <style>
-             body { background: #050505; color: #ff3333; font-family: monospace; padding: 50px; text-align: center; }
-             h1 { text-shadow: 0 0 5px rgba(255, 51, 51, 0.5); font-size: 24px; margin-bottom: 20px; }
-             p { font-size: 14px; margin: 10px 0; }
-             a { color: #ff3333; text-decoration: none; border: 1px solid #ff3333; padding: 8px 15px; font-size: 12px; font-weight: bold; transition: all 0.2s; }
-             a:hover { background: rgba(255, 51, 51, 0.15); box-shadow: 0 0 8px rgba(255, 51, 51, 0.4); }
+             ${crtStyles}
+             body { color: #ff3333; }
            </style>
          </head>
          <body>
-           <h1>[SYSTEM LOCKDOWN - MAINTENANCE IN PROGRESS]</h1>
-           <p style="color: #00ff66;">DATABASE NODE OFFLINE FOR O5 LEVEL BACKUP AND ENCRYPTION UPGRADES.</p>
-           <p style="color: #666; font-size: 11px;">TIMESTAMP: ${new Date().toISOString()}</p>
-           <br/><br/>
-           <p><a href="/login">O5 COMMAND LOGIN</a></p>
+           <div class="scanlines"></div>
+           <div class="vignette"></div>
+           <div class="container">
+             <div style="font-size:30px; margin-bottom:15px;">&#9888;</div>
+             <h1>[SYSTEM LOCKDOWN - MAINTENANCE IN PROGRESS]</h1>
+             <p style="color: #00ff66;">DATABASE NODE OFFLINE FOR O5 LEVEL BACKUP AND ENCRYPTION UPGRADES.</p>
+             <p style="color: #666; font-size: 10px;">TIMESTAMP: ${new Date().toISOString()}</p>
+             <a href="/login">O5 COMMAND LOGIN</a>
+           </div>
          </body>
        </html>`,
       { headers: { 'Content-Type': 'text/html' } }
@@ -92,20 +168,21 @@ export async function updateSession(request: NextRequest) {
            <head>
              <title>SCP ACCESS - PENDING</title>
              <style>
-               body { background: #050505; color: #ffaa00; font-family: monospace; padding: 50px; text-align: center; }
-               h1 { text-shadow: 0 0 5px rgba(255, 170, 0, 0.5); font-size: 24px; margin-bottom: 20px; }
-               p { font-size: 14px; margin: 10px 0; }
-               a { color: #ffaa00; text-decoration: none; border: 1px solid #ffaa00; padding: 8px 15px; font-size: 12px; font-weight: bold; }
-               a:hover { background: rgba(255, 170, 0, 0.15); }
+               ${crtStyles}
+               body { color: #ffaa00; }
              </style>
            </head>
            <body>
-             <h1>[ACCESS PENDING COMMAND APPROVAL]</h1>
-             <p style="color: #00ff66;">YOUR AGENT REGISTRATION FORM HAS BEEN TRANSMITTED TO O5-1 DIRECT CONTROL PANEL.</p>
-             <p style="color: #666; font-size: 11px;">AGENT IDENTIFIER: ${user.id}</p>
-             <p style="color: #666; font-size: 11px;">STATUS: AWAITING AUTHORIZATION</p>
-             <br/><br/>
-             <p><a href="/login">ACCESS PROFILE (DISCONNECT)</a></p>
+             <div class="scanlines"></div>
+             <div class="vignette"></div>
+             <div class="container">
+               <div style="font-size:30px; margin-bottom:15px;">&#8987;</div>
+               <h1>[ACCESS AWAITING OVERSEER APPROVAL]</h1>
+               <p style="color: #00ff66;">YOUR AGENT REGISTRATION FORM HAS BEEN TRANSMITTED TO O5-1 DIRECT CONTROL PANEL.</p>
+               <p style="color: #666; font-size: 10px;">AGENT IDENTIFIER: ${user.id}</p>
+               <p style="color: #666; font-size: 10px;">STATUS: AWAITING AUTHORIZATION</p>
+               <a href="/login">ACCESS PROFILE (DISCONNECT)</a>
+             </div>
            </body>
          </html>`,
         { headers: { 'Content-Type': 'text/html' } }
@@ -118,19 +195,20 @@ export async function updateSession(request: NextRequest) {
            <head>
              <title>SCP ACCESS - SUSPENDED</title>
              <style>
-               body { background: #050505; color: #ff3333; font-family: monospace; padding: 50px; text-align: center; }
-               h1 { text-shadow: 0 0 5px rgba(255, 51, 51, 0.5); font-size: 24px; margin-bottom: 20px; }
-               p { font-size: 14px; margin: 10px 0; }
-               a { color: #ff3333; text-decoration: none; border: 1px solid #ff3333; padding: 8px 15px; font-size: 12px; font-weight: bold; }
-               a:hover { background: rgba(255, 51, 51, 0.15); }
+               ${crtStyles}
+               body { color: #ff3333; }
              </style>
            </head>
            <body>
-             <h1>[ACCESS TERMINATED - ACCOUNT SUSPENDED]</h1>
-             <p>THIS ACCOUNT HAS BEEN SUSPENDED OR CLOSED BY THE ETHICS COMMITTEE FOR SECURITY VIOLATIONS.</p>
-             <p style="color: #666; font-size: 11px;">CASE STATUS: RESOLVED - CLASS-A AMNESTICS ORDERED</p>
-             <br/><br/>
-             <p><a href="/login">DISCONNECT FROM TERMINAL</a></p>
+             <div class="scanlines"></div>
+             <div class="vignette"></div>
+             <div class="container">
+               <div style="font-size:30px; margin-bottom:15px;">&#9760;</div>
+               <h1>[ACCESS TERMINATED - ACCOUNT SUSPENDED]</h1>
+               <p>THIS ACCOUNT HAS BEEN SUSPENDED OR CLOSED BY THE ETHICS COMMITTEE FOR SECURITY VIOLATIONS.</p>
+               <p style="color: #666; font-size: 10px;">CASE STATUS: RESOLVED - CLASS-A AMNESTICS ORDERED</p>
+               <a href="/login">DISCONNECT FROM TERMINAL</a>
+             </div>
            </body>
          </html>`,
         { headers: { 'Content-Type': 'text/html' } }

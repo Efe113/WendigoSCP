@@ -24,6 +24,7 @@ export async function createScpItem(prevState: any, formData: FormData) {
     const clearance_level_required = parseInt(formData.get('clearance_level_required') as string, 10)
     const addenda_json = formData.get('addenda_json') as string || '[]'
     const resources_json = formData.get('resources_json') as string || '[]'
+    const metadata_json = formData.get('metadata_json') as string || '{}'
 
     if (!item_number || !codename || !object_class || !containment_procedures || !description || isNaN(clearance_level_required)) {
       return { error: 'All fields are required.' }
@@ -36,6 +37,7 @@ export async function createScpItem(prevState: any, formData: FormData) {
     // Parse nested arrays
     const addenda = JSON.parse(addenda_json)
     const resources = JSON.parse(resources_json)
+    const metadata = JSON.parse(metadata_json)
 
     // Insert main SCP item
     const { data: newItem, error: itemError } = await supabase
@@ -47,6 +49,7 @@ export async function createScpItem(prevState: any, formData: FormData) {
         containment_procedures,
         description,
         clearance_level_required,
+        metadata,
       })
       .select('id')
       .single()
@@ -118,10 +121,13 @@ export async function updateScpItem(prevState: any, formData: FormData) {
     const containment_procedures = formData.get('containment_procedures') as string
     const description = formData.get('description') as string
     const clearance_level_required = parseInt(formData.get('clearance_level_required') as string, 10)
+    const metadata_json = formData.get('metadata_json') as string || '{}'
 
     if (!id || !item_number || !codename || !object_class || !containment_procedures || !description || isNaN(clearance_level_required)) {
       return { error: 'All fields are required.' }
     }
+
+    const metadata = JSON.parse(metadata_json)
 
     const { error } = await supabase
       .from('scp_items')
@@ -132,6 +138,7 @@ export async function updateScpItem(prevState: any, formData: FormData) {
         containment_procedures,
         description,
         clearance_level_required,
+        metadata,
       })
       .eq('id', id)
 

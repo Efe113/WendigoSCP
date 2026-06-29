@@ -244,8 +244,28 @@ export default async function Page({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Right Side: Media Attachments Sidebar */}
+        {/* Right Side: Media Attachments & Technical Specs Sidebar */}
         <div className="space-y-4">
+          {/* Technical Specifications Grid */}
+          {item.metadata && Object.keys(item.metadata).length > 0 && (
+            <div className="border border-terminal-border p-4 bg-black/45 space-y-3 font-mono text-[10px]">
+              <h3 className="text-xs font-bold border-b border-terminal-border/40 pb-2 tracking-wider uppercase text-white">
+                TECHNICAL SPECIFICATION CODE
+              </h3>
+              <div className="grid grid-cols-1 gap-2 max-h-[350px] overflow-y-auto pr-1">
+                {Object.entries(item.metadata).map(([key, val]) => {
+                  if (!val) return null
+                  return (
+                    <div key={key} className="flex justify-between border-b border-terminal-border/10 pb-1 flex-wrap gap-1">
+                      <span className="text-terminal-primary/45 uppercase">{key.replace(/_/g, ' ')}:</span>
+                      <span className="font-bold text-white uppercase truncate max-w-[150px]" title={val as string}>{val as string}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="border border-terminal-border p-4 bg-black/40">
             <h3 className="text-xs font-bold border-b border-terminal-border/40 pb-2 mb-3 tracking-wider flex items-center gap-1.5">
               <HelpCircle className="w-4 h-4" /> VISUAL & AUDITORY FILES

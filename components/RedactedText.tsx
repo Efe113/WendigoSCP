@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { replaceCustomTags } from './ScpMarkdown'
 
 interface RedactedTextProps {
   text: string
@@ -14,7 +15,7 @@ export default function RedactedText({ text }: RedactedTextProps) {
   const parts = text.split(/\|\|/g)
 
   if (parts.length === 1) {
-    return <span>{text}</span>
+    return <span dangerouslySetInnerHTML={{ __html: replaceCustomTags(text) }} />
   }
 
   return (
@@ -23,7 +24,7 @@ export default function RedactedText({ text }: RedactedTextProps) {
         if (index % 2 === 1) {
           return <RedactedWord key={index} word={part} />
         }
-        return <span key={index}>{part}</span>
+        return <span key={index} dangerouslySetInnerHTML={{ __html: replaceCustomTags(part) }} />
       })}
     </span>
   )
@@ -47,8 +48,7 @@ function RedactedWord({ word }: { word: string }) {
         backgroundColor: hovered ? 'transparent' : '#000000',
         textShadow: hovered ? '0 0 2px rgba(0, 255, 102, 0.5)' : 'none'
       }}
-    >
-      {word}
-    </span>
+      dangerouslySetInnerHTML={{ __html: hovered ? replaceCustomTags(word) : word }}
+    />
   )
 }
