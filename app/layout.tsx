@@ -3,7 +3,7 @@ import './globals.css'
 import Link from 'next/link'
 import { getUserClearance, signOut } from '@/app/actions/scp'
 import ClearanceSwitcher from '@/components/ClearanceSwitcher'
-import { Terminal, Shield, User, Database, Radio, Key, BookOpen } from 'lucide-react'
+import { Terminal, Shield, User, Database, Radio, Key, BookOpen, Info, Home } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'SCP Foundation Secure Database',
@@ -42,8 +42,11 @@ export default async function RootLayout({
               </div>
             </div>
 
-            <nav className="flex items-center gap-6 text-sm">
+            <nav className="flex items-center gap-4 text-xs sm:text-sm flex-wrap">
               <Link href="/" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
+                <Home className="w-4 h-4" /> PORTAL
+              </Link>
+              <Link href="/directory" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
                 <Database className="w-4 h-4" /> DIRECTORY
               </Link>
               <Link href="/console" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
@@ -51,6 +54,9 @@ export default async function RootLayout({
               </Link>
               <Link href="/guide" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
                 <BookOpen className="w-4 h-4" /> GUIDE
+              </Link>
+              <Link href="/about" className="hover:text-white transition-colors flex items-center gap-1.5 py-1 border-b border-transparent hover:border-terminal-primary">
+                <Info className="w-4 h-4" /> ABOUT
               </Link>
               {user ? (
                 <div className="flex items-center gap-4 border-l border-terminal-border pl-4">

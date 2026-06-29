@@ -22,6 +22,8 @@ export async function createScpItem(prevState: any, formData: FormData) {
     const containment_procedures = formData.get('containment_procedures') as string
     const description = formData.get('description') as string
     const clearance_level_required = parseInt(formData.get('clearance_level_required') as string, 10)
+    const addenda_json = formData.get('addenda_json') as string || '[]'
+    const resources_json = formData.get('resources_json') as string || '[]'
 
     if (!item_number || !codename || !object_class || !containment_procedures || !description || isNaN(clearance_level_required)) {
       return { error: 'All fields are required.' }
@@ -31,20 +33,70 @@ export async function createScpItem(prevState: any, formData: FormData) {
       return { error: 'Item number must be in format SCP-XXXX (e.g. SCP-173).' }
     }
 
-    const { error } = await supabase.from('scp_items').insert({
-      item_number: item_number.toUpperCase(),
-      codename,
-      object_class,
-      containment_procedures,
-      description,
-      clearance_level_required,
-    })
+    // Parse nested arrays
+    const addenda = JSON.parse(addenda_json)
+    const resources = JSON.parse(resources_json)
 
-    if (error) {
-      if (error.code === '23505') {
+    // Insert main SCP item
+    const { data: newItem, error: itemError } = await supabase
+      .from('scp_items')
+      .insert({
+        item_number: item_number.toUpperCase(),
+        codename,
+        object_class,
+        containment_procedures,
+        description,
+        clearance_level_required,
+      })
+      .select('id')
+      .single()
+
+    if (itemError) {
+      if (itemError.code === '23505') {
         return { error: `Item ${item_number.toUpperCase()} already exists in the database.` }
       }
-      return { error: error.message }
+      return { error: itemError.message }
+    }
+
+    // Insert addenda if any
+    if (addenda.length > 0) {
+      const addendaToInsert = addenda.map((ad: any) => ({
+        scp_item_id: newItem.id,
+        title: ad.title,
+        content: ad.content,
+        type: ad.type,
+        clearance_level_required: parseInt(ad.clearance_level_required, 10) || 1,
+      }))
+
+      const { error: addendaError } = await supabase
+        .from('scp_addenda')
+        .insert(addendaToInsert)
+
+      if (addendaError) {
+        // Rollback parent insertion
+        await supabase.from('scp_items').delete().eq('id', newItem.id)
+        return { error: `Failed to insert addenda: ${addendaError.message}` }
+      }
+    }
+
+    // Insert resources if any
+    if (resources.length > 0) {
+      const resourcesToInsert = resources.map((res: any) => ({
+        scp_item_id: newItem.id,
+        caption: res.caption || '',
+        url: res.url,
+        type: res.type,
+      }))
+
+      const { error: resourcesError } = await supabase
+        .from('scp_resources')
+        .insert(resourcesToInsert)
+
+      if (resourcesError) {
+        // Rollback parent insertion
+        await supabase.from('scp_items').delete().eq('id', newItem.id)
+        return { error: `Failed to insert media resources: ${resourcesError.message}` }
+      }
     }
 
     revalidatePath('/')

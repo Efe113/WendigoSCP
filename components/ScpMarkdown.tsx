@@ -11,8 +11,8 @@ interface ScpMarkdownProps {
 export default function ScpMarkdown({ content }: ScpMarkdownProps) {
   if (!content) return null
 
-  // Tokenize the content by block tags: [warn], [denied], [interview]
-  const blockRegex = /(\[warn\][\s\S]*?\[\/warn\]|\[denied\][\s\S]*?\[\/denied\]|\[interview\][\s\S]*?\[\/interview\])/g
+  // Tokenize the content by block tags: [warn], [denied], [interview], [note], [level5]
+  const blockRegex = /(\[warn\][\s\S]*?\[\/warn\]|\[denied\][\s\S]*?\[\/denied\]|\[interview\][\s\S]*?\[\/interview\]|\[note\][\s\S]*?\[\/note\]|\[level5\][\s\S]*?\[\/level5\])/g
   const chunks = content.split(blockRegex)
 
   return (
@@ -37,11 +37,38 @@ export default function ScpMarkdown({ content }: ScpMarkdownProps) {
         if (chunk.startsWith('[interview]')) {
           const innerText = chunk.replace(/\[interview\]/g, '').replace(/\[\/interview\]/g, '').trim()
           return (
-            <div key={index} className="border-l-2 border-terminal-info pl-4 py-1.5 my-3 text-terminal-info/90 bg-terminal-info/[0.01]">
+            <div key={index} className="border-l-2 border-terminal-info pl-4 py-1.5 my-3 text-terminal-info/90 bg-terminal-info/[0.01] font-mono">
               <div className="text-[10px] uppercase font-bold tracking-wider mb-2 text-terminal-info/60">
                 TRANSCRIPT LOG
               </div>
               <div className="space-y-2">{renderParagraphs(innerText)}</div>
+            </div>
+          )
+        }
+        if (chunk.startsWith('[note]')) {
+          const innerText = chunk.replace(/\[note\]/g, '').replace(/\[\/note\]/g, '').trim()
+          return (
+            <div key={index} className="border border-dashed border-terminal-warn/40 bg-terminal-warn/[0.01] p-3 my-3 text-terminal-warn/90">
+              <div className="text-[9px] uppercase font-bold tracking-widest mb-1.5 text-terminal-warn/50">
+                ADMINISTRATIVE NOTE // RESTRICTED ACCESS
+              </div>
+              <div className="text-xs">{renderParagraphs(innerText)}</div>
+            </div>
+          )
+        }
+        if (chunk.startsWith('[level5]')) {
+          const innerText = chunk.replace(/\[level5\]/g, '').replace(/\[\/level5\]/g, '').trim()
+          return (
+            <div key={index} className="border border-terminal-error bg-terminal-error/5 p-4 my-4 relative overflow-hidden">
+              <div className="absolute -top-[1px] -left-[1px] w-3.5 h-3.5 border-t border-l border-terminal-error animate-pulse"></div>
+              <div className="absolute -top-[1px] -right-[1px] w-3.5 h-3.5 border-t border-r border-terminal-error animate-pulse"></div>
+              <div className="absolute -bottom-[1px] -left-[1px] w-3.5 h-3.5 border-b border-l border-terminal-error animate-pulse"></div>
+              <div className="absolute -bottom-[1px] -right-[1px] w-3.5 h-3.5 border-b border-r border-terminal-error animate-pulse"></div>
+              <div className="text-[10px] text-terminal-error font-extrabold tracking-widest mb-2 flex items-center gap-1.5 uppercase">
+                <span className="inline-block w-2 h-2 bg-terminal-error rounded-full animate-ping"></span>
+                LEVEL 5 SECURITY ACCESS ONLY // O5 COMMAND RESTRICTIONS
+              </div>
+              <div className="text-xs text-terminal-error/90">{renderParagraphs(innerText)}</div>
             </div>
           )
         }
@@ -56,6 +83,11 @@ function renderParagraphs(text: string) {
   return lines.map((line, i) => {
     const trimmedLine = line.trim()
     if (!trimmedLine) return <div key={i} className="h-2"></div>
+
+    // Dividers: ---
+    if (trimmedLine === '---') {
+      return <hr key={i} className="border-t border-dashed border-terminal-border/40 my-3" />
+    }
 
     // Headers: ### Header
     if (trimmedLine.startsWith('### ')) {
@@ -93,9 +125,29 @@ function renderParagraphs(text: string) {
   })
 }
 
-// Simple bold and italic compilation inline
+// Inline code compilation: `code`
 function renderInline(text: string) {
-  // Regex split to extract bold parts: e.g. "Normal **bold** normal"
+  const codeRegex = /(`[^`\n]+`)/g
+  const parts = text.split(codeRegex)
+
+  return (
+    <>
+      {parts.map((part, idx) => {
+        if (part.startsWith('`') && part.endsWith('`')) {
+          const codeText = part.slice(1, -1)
+          return (
+            <code key={idx} className="bg-black border border-terminal-border/40 px-1 text-terminal-primary font-mono text-[11px] font-semibold text-shadow-none mx-0.5">
+              {codeText}
+            </code>
+          )
+        }
+        return <span key={idx}>{renderBold(part)}</span>
+      })}
+    </>
+  )
+}
+
+function renderBold(text: string) {
   const boldRegex = /(\*\*.*?\*\*)/g
   const parts = text.split(boldRegex)
 
@@ -129,7 +181,6 @@ function renderItalic(text: string) {
   )
 }
 
-// Pass text to RedactedText component to handle ||redacted||
 function renderRedacted(text: string) {
   return <RedactedText text={text} />
 }
